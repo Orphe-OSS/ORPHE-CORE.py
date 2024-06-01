@@ -24,5 +24,6 @@ python get_acc.py
 - [x] ORPHE COREのBLE通信をpythonで行う
 - [x] orphe_core.pyでクラス化する
 - [ ] device informationのキャラクタリスティック対応
-- [x] SENSOR VALUESのキャラクタリスティック対応
+- [x] SENSOR VALUESの200Hzキャラクタリスティック対応
+- [ ] SENSOR VALUESの50Hzキャラクタリスティック対応
 - [ ] STEP ANALYSISのキャラクタリスティック対応
