@@ -3,7 +3,7 @@ Happy hacking for ORPHE CORE with python!!
 
 
 > [!IMPORTANT]
-> このリポジトリはプライベートです。とりあえずコアモジュールをpythonでいじって遊んで、それをメンバー内で共有できるようにするためのリポジトリです。playgroundとしてまずは使います。ライブラリとして整えていくのはその後の課題です。
+> このリポジトリはプライベートです。とりあえずコアモジュールをpythonでいじって遊んで、それをメンバー内で共有できるようにするためのリポジトリです。playgroundとしてまずは使います。徐々にライブラリ orphe_core.py として整備していきます。
 
 ## Installation
 ```bash
@@ -12,7 +12,7 @@ cd ORPHE-CORE.py
 pip install bleak
 ```
 ## Compatibility
- * ORPHE CORE v3, 200Hz対応モデルのみで動作を確認しています。
+ * ORPHE CORE v2,3の50Hz、200Hzモデルに対応しています。
 
 ## 動作確認
 以下を実行して、センサーの値を取得することができます。とりあえず200Hzで最初の加速度値だけを表示するようにしています。お試しあれ。終了する場合は`Ctrl+C`で終了できます。
@@ -23,7 +23,8 @@ python get_acc.py
 ## 作業メモ
 - [x] ORPHE COREのBLE通信をpythonで行う
 - [x] orphe_core.pyでクラス化する
-- [ ] device informationのキャラクタリスティック対応
+- [x] device informationのキャラクタリスティック対応
 - [x] SENSOR VALUESの200Hzキャラクタリスティック対応
-- [ ] SENSOR VALUESの50Hzキャラクタリスティック対応
+- [x] SENSOR VALUESの50Hzキャラクタリスティック対応
 - [ ] STEP ANALYSISのキャラクタリスティック対応
+- [ ] ドキュメントの整備
