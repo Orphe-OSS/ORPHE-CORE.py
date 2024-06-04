@@ -21,6 +21,16 @@ pip install bleak
 python get_acc.py
 ```
 
+## ドキュメント
+  * doc/index.html をブラウザで開くと、ドキュメントを閲覧できます。
+
+### 生成方法
+orphe_core.pyのdocstringからドキュメントを生成します。htmlファイルの生成には pdoc3 を利用しています。orphe_core.pyのdocstringを書き換えたり、機能を追加した場合は以下のコマンドでドキュメントを再生成してください。
+```bash
+pip install pdoc3
+pdoc orphe_core --html -o doc --force
+```
+
 ## 作業メモ
 - [x] ORPHE COREのBLE通信をpythonで行う
 - [x] orphe_core.pyでクラス化する

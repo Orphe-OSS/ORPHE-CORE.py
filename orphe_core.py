@@ -15,6 +15,16 @@ WRITE_WAIT_INTERVAL_SEC = 0.2
 
 
 def to_timestamp(hours, minutes, seconds, ms_high, ms_low):
+    """
+    v3のデータについてくるタイムスタンプをフォーマットする関数
+
+    Args:
+        hours: 時
+        minutes: 分
+        seconds: 秒
+        ms_high: ミリ秒の上位バイト
+        ms_low: ミリ秒の下位バイト
+    """
     # 現在の日付を取得
     now = datetime.now()
 
@@ -30,6 +40,18 @@ def to_timestamp(hours, minutes, seconds, ms_high, ms_low):
 
 
 class AccData:
+    """
+    加速度センサの値を格納するクラス
+
+    Attributes:
+        x: x軸の加速度
+        y: y軸の加速度
+        z: z軸の加速度
+        timestamp: タイムスタンプ
+        serial_number: シリアルナンバー
+        packet_number: パケットナンバー
+    """
+
     def __init__(self):
         self.x = 0
         self.y = 0
@@ -40,6 +62,18 @@ class AccData:
 
 
 class GyroData:
+    """
+    ジャイロセンサの値を格納するクラス
+
+    Attributes:
+        x: x軸の角速度
+        y: y軸の角速度
+        z: z軸の角速度
+        timestamp: タイムスタンプ
+        serial_number: シリアルナンバー
+        packet_number: パケットナンバー
+    """
+
     def __init__(self):
         self.x = 0
         self.y = 0
@@ -50,6 +84,19 @@ class GyroData:
 
 
 class QuatData:
+    """
+    クォータニオンの値を格納するクラス
+
+    Attributes:
+        w: w
+        x: x
+        y: y
+        z: z
+        timestamp: タイムスタンプ
+        serial_number: シリアルナンバー
+        packet_number: パケットナンバー
+    """
+
     def __init__(self):
         self.w = 0
         self.x = 0
@@ -61,13 +108,45 @@ class QuatData:
 
 
 class Range:
+    """
+    加速度センサとジャイロセンサのレンジを格納するクラス
+
+    Attributes:
+        acc: 加速度センサのレンジ
+        gyro: ジャイロセンサのレンジ
+    """
+
     def __init__(self):
         self.acc = 0
         self.gyro = 0
 
 
 class SensorValuesData:
+    """
+    センサの値を格納するクラス
+
+    Attributes:
+        owner: オーナー（SensorValuesDataを生成したオブジェクトで、Orpheクラスのインスタンスが入っている。これはコールバック関数を登録するため）
+        data: 生データ
+        type: タイプ（40の場合は50Hzのv2, 50の場合は200Hzのv3）
+        serial_number: シリアルナンバー
+        timestamp: タイムスタンプ
+        acc: 加速度センサの値
+        converted_acc: 変換後の加速度センサの値
+        gyro: ジャイロセンサの値
+        converted_gyro: 変換後のジャイロセンサの値
+        quat: クォータニオンの値
+    """
+
     def __init__(self, owner, data, sensor_range):
+        """
+        コンストラクタ
+
+        Args:
+            owner: オーナー（SensorValuesDataを生成したオブジェクトで、Orpheクラスのインスタンスが入っている。これはコールバック関数を登録するため）
+            data: 生データ
+            sensor_range: 加速度センサとジャイロセンサのレンジ。Rangeクラスのインスタンス
+            """
         if data[0] == 50:
             self.data = data
             self.type = int.from_bytes(
@@ -219,6 +298,20 @@ class SensorValuesData:
 
 
 class DeviceInformation:
+    """
+    デバイス情報を格納するクラス
+    data: 生データ
+    battery: バッテリー残量
+    lr: LR
+    rec: REC
+    auto_run: Auto Run
+    led(int): LED発光の強さ 0-255
+    log_high: Log High
+    log_low: Log Low
+    range: レンジ
+    device_information: 取得したデバイス情報の保管用メンバ変数
+    """
+
     def __init__(self, data):
         self.data = data
         self.battery = int.from_bytes(data[0:1], byteorder='big', signed=False)
@@ -239,26 +332,58 @@ class DeviceInformation:
 
 
 class Orphe:
+    """
+    ORPHE COREのBLE通信を行うクラス
+    """
+
     def __init__(self):
+        """
+        コンストラクタ
+        """
         self.serial_number_prev = 0
         self.client = None
 
     def set_got_acc_callback(self, callback):
+        """加速度センサの値を取得したときに呼び出されるコールバック関数を設定する。
+
+        例えば静止状態ではz方向の1Gの値はレンジ設定によって変わります。加速度レンジが2であれば 0.5 、16であれば 0.0625 （値は理論値なので誤差が生じます）です。
+        """
         self.got_acc_callback = callback
 
     def set_got_gyro_callback(self, callback):
+        """
+        ジャイロセンサの値を取得したときに呼び出されるコールバック関数を設定する
+        """
         self.got_gyro_callback = callback
 
     def set_got_converted_acc_callback(self, callback):
+        """
+        加速度センサの値を取得したときに呼び出されるコールバック関数を設定する
+
+        それぞれの値は加速度レンジの値によって変換されます。
+        例えば静止状態ではz方向の1Gの値は常に1.0です。
+        """
         self.got_converted_acc_callback = callback
 
     def set_got_converted_gyro_callback(self, callback):
+        """
+        ジャイロセンサの値を取得したときに呼び出されるコールバック関数を設定する
+        """
         self.got_converted_gyro_callback = callback
 
     def set_got_quat_callback(self, callback):
+        """
+        クォータニオンの値を取得したときに呼び出されるコールバック関数を設定する
+        """
         self.got_quat_callback = callback
 
     async def connect(self):
+        """
+        ORPHE COREと接続する
+
+        Returns: 
+            接続に成功した場合はTrue、失敗した場合はFalse
+        """
         print("Scanning for ORPHE CORE BLE device...")
         devices = await BleakScanner.discover()
 
@@ -283,12 +408,19 @@ class Orphe:
             return False
 
     async def read_device_information(self):
+        """
+        ORPHE COREのデバイス情報を取得する。一度取得したデバイス情報はself.device_informationメンバ変数に保存される。
+        Returns: DeviceInformationクラスのインスタンス
+        """
         di = await self.client.read_gatt_char(CHARACTERISTIC_DEVICE_INFORMATION_UUID)
         di = DeviceInformation(di)
-        self.device_information = di
+        self.device_information = di  # デバイス情報をメンバ変数として保存（更新）しておく
         return di
 
     async def print_device_information(self):
+        """
+        ORPHE COREのデバイス情報を取得し、標準出力に表示する。ほぼデバッグ用途
+        """
         di = await self.read_device_information()
         print(di.rec)
         print(f"Battery: {di.battery}")
@@ -368,14 +500,19 @@ class Orphe:
         await self.write_device_information(ba)
 
     async def write_device_information(self, ba):
+        """
+        デバイス情報を書き込む。書き込み後にすぐデバイスインフォメーションを読み込むと正しいデータが取得できないため、WRITE_WAIT_INTERVAL_SEC秒待つ
+        """
         print(f"Writing device information: {ba}")
-
         await self.client.write_gatt_char(CHARACTERISTIC_DEVICE_INFORMATION_UUID, ba)
 
         # 100ms待つ（これがないと即座にdevice informationを読み込まれると正しいデータ取得ができないため）
         await asyncio.sleep(WRITE_WAIT_INTERVAL_SEC)
 
     async def sensor_values_notification_handler(self, sender, data):
+        """
+        センサの値を取得したときに呼び出されるハンドラ
+        """
         # データの長さを確認
         if data[0] == 50:
             sensor_values = SensorValuesData(
@@ -390,17 +527,32 @@ class Orphe:
                 self, data, self.device_information.range)
 
     async def start_sensor_values_notification(self):
+        """
+        センサの値の通知を開始する。ただしセンサ値のレンジを取得しておかないといけないので、最初にデバイス情報を取得する
+        """
         await self.read_device_information()
         await self.client.start_notify(CHARACTERISTIC_SENSOR_VALUES_UUID, self.sensor_values_notification_handler)
 
     async def start_step_analysis_notification(self):
+        """
+        ステップ解析の通知を開始する
+        """
         await self.client.start_notify(CHARACTERISTIC_STEP_ANALYSIS_UUID, self.step_analysis_notification_handler)
 
     async def stop_sensor_values_notification(self):
+        """
+        センサの値の通知を停止する
+        """
         await self.client.stop_notify(CHARACTERISTIC_SENSOR_VALUES_UUID)
 
     async def stop_step_analysis_notification(self):
+        """
+        ステップ解析の通知を停止する
+        """
         await self.client.stop_notify(CHARACTERISTIC_STEP_ANALYSIS_UUID)
 
     async def disconnect(self):
+        """
+        ORPHE COREとの接続を切断する
+        """
         await self.client.disconnect()
