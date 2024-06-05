@@ -1,11 +1,12 @@
 import asyncio
+import struct
 from datetime import datetime, timedelta
 from bleak import BleakClient, BleakScanner
 
 
 # キャラクタリスティックUUID
 CHARACTERISTIC_SENSOR_VALUES_UUID = "f3f9c7ce-46ee-4205-89ac-abe64e626c0f"
-CHARACTERISTIC_STEP_ANALYSIS_UUID = "f3f9c7ce-46ee-4205-89ac-abe64e626c0f"
+CHARACTERISTIC_STEP_ANALYSIS_UUID = "4eb776dc-cf99-4af7-b2d3-ad0f791a79dd"
 CHARACTERISTIC_DEVICE_INFORMATION_UUID = "24354f22-1c46-430e-a4ab-a1eeabbcdfc0"
 # デバイスのサービスUUID（例：OrpheのサービスUUID）
 SERVICE_ORPHE_INFORMATION_UUID = "01a9d6b5-ff6e-444a-b266-0be75e85c064"
@@ -60,6 +61,10 @@ class AccData:
         self.serial_number = 0
         self.packet_number = 0
 
+    def print(self):
+        print(
+            f"Acc[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}")
+
 
 class GyroData:
     """
@@ -81,6 +86,10 @@ class GyroData:
         self.timestamp = 0
         self.serial_number = 0
         self.packet_number = 0
+
+    def print(self):
+        print(
+            f"Gyro[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}")
 
 
 class QuatData:
@@ -106,6 +115,10 @@ class QuatData:
         self.serial_number = 0
         self.packet_number = 0
 
+    def print(self):
+        print(
+            f"Quat[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.w}, {self.x}, {self.y}, {self.z}")
+
 
 class Range:
     """
@@ -119,6 +132,197 @@ class Range:
     def __init__(self):
         self.acc = 0
         self.gyro = 0
+
+
+class GaitData:
+    """
+    歩行解析の値を格納するクラス
+    """
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder='big', signed=False)
+        # 4番目は最初の2ビット分が enumで歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
+        self.gait_type = data[4] & 0b00000011
+        # 4番目は2,3,4ビット分がenumでストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
+        self.direction = (data[4] & 0b00011100) >> 2
+        # data[6],data[7]はfloat16で総消費カロリー
+        self.calorie = struct.unpack('>e', data[6:8])
+        # 8,9,10,11はfloat32で総移動距離
+        self.distance = struct.unpack('>f', data[8:12])
+        # 12,13,14,15はfloat32で立脚期継続時間（standing phase duration）
+        self.standing_phase_duration = struct.unpack('>f', data[12:16])
+        # 16,17,18,19はflaot32で遊脚期継続時間（swing_phase_duration)
+        self.swing_phase_duration = struct.unpack('>f', data[16:20])
+
+    def print(self):
+        print(f"Step count: {self.step_count}")
+        print(f"Gait type: {self.gait_type}")
+        print(f"Direction: {self.direction}")
+        print(f"Calorie: {self.calorie}")
+        print(f"Distance: {self.distance}")
+        print(f"Standing phase duration: {self.standing_phase_duration}")
+        print(f"Swing phase duration: {self.swing_phase_duration}")
+
+
+class StrideData:
+    """
+    ストライドの値を格納するクラス
+    """
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder='big', signed=False)
+        # 4,5,6,7はfloat32でフットアングル
+        self.foot_angle = struct.unpack('>f', data[4:8])
+        # 8,9,10,11はfloat32でストライドX
+        self.x = struct.unpack('>f', data[8:12])
+        # 12,13,14,15はfloat32でストライドY
+        self.y = struct.unpack('>f', data[12:16])
+        # 16,17,18,19はfloat32でストライドZ
+        self.z = struct.unpack('>f', data[16:20])
+
+    def print(self):
+        print(f"Step count: {self.step_count}")
+        print(f"Foot angle: {self.foot_angle}")
+        print(f"Stride X: {self.x}")
+        print(f"Stride Y: {self.y}")
+        print(f"Stride Z: {self.z}")
+
+
+class PronationData:
+    """
+    プロネーションの値を格納するクラス
+    """
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder='big', signed=False)
+        # 4,5,6,7はfloat32で着地衝撃力[kgf](landing_impact)
+        self.landing_impact = struct.unpack('>f', data[4:8])
+        # 8,9,10,11はプロネーションX[deg](x)
+        self.x = struct.unpack('>f', data[8:12])
+        # 12,13,14,15はプロネーションY[deg](y)
+        self.y = struct.unpack('>f', data[12:16])
+        # 16,17,18,19はプロネーションZ[deg](z)
+        self.z = struct.unpack('>f', data[16:20])
+
+    def print(self):
+        print(f"Step count: {self.step_count}")
+        print(f"Landing impact: {self.landing_impact}")
+        print(f"Pronation X: {self.x}")
+        print(f"Pronation Y: {self.y}")
+        print(f"Pronation Z: {self.z}")
+
+
+class QuatDistanceData:
+    """
+    クォータニオンと差分値を格納するクラス
+    """
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder='big', signed=False)
+        # 4は01ビットがenumの歩容フェイズ（0:なし, 1:立脚期, 2:遊脚期）
+        self.phase = data[4] & 0b00000001
+        # 4は2,3,4ビットがenumの歩容ピリオド（0:なし,1:LoadingResponse, 2:MidStance, 3:TerminalStance, 4:InitialSwing, 5:MidSwing, 6:TerminalSwing）
+        self.period = (data[4] & 0b00011110) >> 1
+        # 4は5,6,7ビットがenumの歩容イベント(0:なし, 1:InitialContact, 2:FootFlat, 3:HeelRise, 4:ToeOff, 5:FeetAdjacent, 6:TibiaVertical)
+        self.event = (data[4] & 0b11100000) >> 5
+        # 6,7はfloat16でクォータニオンのw
+        self.w = struct.unpack('>e', data[6:8])
+        # 8,9はfloat16でクォータニオンのx
+        self.x = struct.unpack('>e', data[8:10])
+        # 10,11はfloat16でクォータニオンのy
+        self.y = struct.unpack('>e', data[10:12])
+        # 12,13はfloat16でクォータニオンのz
+        self.z = struct.unpack('>e', data[12:14])
+        # 14,15はfloat16で加速度力算出された単位時間のx移動距離
+        self.x_distance = struct.unpack('>e', data[14:16])
+        # 16,17はfloat16で加速度力算出された単位時間のy移動距離
+        self.y_distance = struct.unpack('>e', data[16:18])
+        # 18,19はfloat16で加速度力算出された単位時間のz移動距離
+        self.z_distance = struct.unpack('>e', data[18:20])
+
+    def print(self):
+        print(f"Step count: {self.step_count}")
+        print(f"Phase: {self.phase}")
+        print(f"Period: {self.period}")
+        print(f"Event: {self.event}")
+        print(f"Quat: {self.w}, {self.x}, {self.y}, {self.z}")
+        print(
+            f"Distance: {self.x_distance}, {self.y_distance}, {self.z_distance}")
+
+
+class StepAnalysisData:
+    """
+    ステップ解析の値を格納するクラス
+    """
+
+    def __init__(self, owner, data):
+        """
+        コンストラクタ
+
+        data[1]のサブヘッダによって解析データの種類がわかる。対応するのは、0,1,2,3,4 である。また、0,1,2,3 に関してはデータ到着担保のために同じデータが二回連続で送信されてくるため、歩数カウントで更新すべきデータかどうかを判断する必要がある。
+
+        0: Gait Overview
+        1: Stride
+        2: Pronation
+        3: 未実装
+        4: クオータニオン
+        5: 未実装
+        6: 未実装
+
+        Args:
+            owner: オーナー（StepAnalysisDataを生成したオブジェクトで、Orpheクラスのインスタンスが入っている。これはコールバック関数を登録するため）
+            data: 生データ
+        """
+        self.data = data
+
+        # gait overview
+        if data[1] == 0:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder='big', signed=False)
+            if self.step_count > owner.step_count.gait:
+                self.gait = GaitData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, 'got_gait_callback') and owner.got_gait_callback:
+                    owner.got_gait_callback(self.gait)
+            owner.step_count.gait = self.step_count
+        # stride
+        elif data[1] == 1:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder='big', signed=False)
+            if self.step_count > owner.step_count.stride:
+                self.stride = StrideData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, 'got_stride_callback') and owner.got_stride_callback:
+                    owner.got_stride_callback(self.stride)
+            owner.step_count.stride = self.step_count
+        # pronation
+        elif data[1] == 2:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder='big', signed=False)
+            if self.step_count > owner.step_count.pronation:
+                self.pronation = PronationData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, 'got_pronation_callback') and owner.got_pronation_callback:
+                    owner.got_pronation_callback(self.pronation)
+            owner.step_count.pronation = self.step_count
+        # quaternion
+        elif data[1] == 4:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder='big', signed=False)
+            # if self.step_count > owner.step_count.quat:
+            self.quat_distance = QuatDistanceData(data)
+            # コールバック関数が設定されている場合、コールバック関数を呼び出す
+            if hasattr(owner, 'got_quat_distance_callback') and owner.got_quat_distance_callback:
+                owner.got_quat_distance_callback(self.quat_distance)
+            owner.step_count.quat = self.step_count
 
 
 class SensorValuesData:
@@ -222,6 +426,18 @@ class SensorValuesData:
                     self.converted_gyro.timestamp = each_timestamp
                     self.quat.timestamp = each_timestamp
 
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, 'got_acc_callback') and owner.got_acc_callback:
+                    owner.got_acc_callback(self.acc)
+                if hasattr(owner, 'got_converted_acc_callback') and owner.got_converted_acc_callback:
+                    owner.got_converted_acc_callback(self.converted_acc)
+                if hasattr(owner, 'got_gyro_callback') and owner.got_gyro_callback:
+                    owner.got_gyro_callback(self.gyro)
+                if hasattr(owner, 'got_converted_gyro_callback') and owner.got_converted_gyro_callback:
+                    owner.got_converted_gyro_callback(self.converted_gyro)
+                if hasattr(owner, 'got_quat_callback') and owner.got_quat_callback:
+                    owner.got_quat_callback(self.quat)
+
         elif data[0] == 40:
             self.data = data
             self.type = int.from_bytes(
@@ -284,17 +500,17 @@ class SensorValuesData:
             self.converted_acc.timestamp = self.timestamp
             self.converted_gyro.timestamp = self.timestamp
 
-        # コールバック関数が設定されている場合、コールバック関数を呼び出す
-        if hasattr(owner, 'got_acc_callback') and owner.got_acc_callback:
-            owner.got_acc_callback(self.acc)
-        if hasattr(owner, 'got_converted_acc_callback') and owner.got_converted_acc_callback:
-            owner.got_converted_acc_callback(self.converted_acc)
-        if hasattr(owner, 'got_gyro_callback') and owner.got_gyro_callback:
-            owner.got_gyro_callback(self.gyro)
-        if hasattr(owner, 'got_converted_gyro_callback') and owner.got_converted_gyro_callback:
-            owner.got_converted_gyro_callback(self.converted_gyro)
-        if hasattr(owner, 'got_quat_callback') and owner.got_quat_callback:
-            owner.got_quat_callback(self.quat)
+            # コールバック関数が設定されている場合、コールバック関数を呼び出す
+            if hasattr(owner, 'got_acc_callback') and owner.got_acc_callback:
+                owner.got_acc_callback(self.acc)
+            if hasattr(owner, 'got_converted_acc_callback') and owner.got_converted_acc_callback:
+                owner.got_converted_acc_callback(self.converted_acc)
+            if hasattr(owner, 'got_gyro_callback') and owner.got_gyro_callback:
+                owner.got_gyro_callback(self.gyro)
+            if hasattr(owner, 'got_converted_gyro_callback') and owner.got_converted_gyro_callback:
+                owner.got_converted_gyro_callback(self.converted_gyro)
+            if hasattr(owner, 'got_quat_callback') and owner.got_quat_callback:
+                owner.got_quat_callback(self.quat)
 
 
 class DeviceInformation:
@@ -331,7 +547,19 @@ class DeviceInformation:
         self.device_information = None
 
 
+class StepCount:
+    """
+    歩数を格納するクラス"""
+
+    def __init__(self):
+        self.gait = 0
+        self.stride = 0
+        self.pronation = 0
+        self.quat = 0
+
+
 class Orphe:
+
     """
     ORPHE COREのBLE通信を行うクラス
     """
@@ -342,6 +570,7 @@ class Orphe:
         """
         self.serial_number_prev = 0
         self.client = None
+        self.step_count = StepCount()  # 歩数
 
     def set_got_acc_callback(self, callback):
         """加速度センサの値を取得したときに呼び出されるコールバック関数を設定する。
@@ -376,6 +605,30 @@ class Orphe:
         クォータニオンの値を取得したときに呼び出されるコールバック関数を設定する
         """
         self.got_quat_callback = callback
+
+    def set_got_gait_callback(self, callback):
+        """
+        歩行解析の値を取得したときに呼び出されるコールバック関数を設定する
+        """
+        self.got_gait_callback = callback
+
+    def set_got_stride_callback(self, callback):
+        """
+        ストライドの値を取得したときに呼び出されるコールバック関数を設定する
+        """
+        self.got_stride_callback = callback
+
+    def set_got_pronation_callback(self, callback):
+        """
+        プロネーションの値を取得したときに呼び出されるコールバック関数を設定する
+        """
+        self.got_pronation_callback = callback
+
+    def set_got_quat_distance_callback(self, callback):
+        """
+        クォータニオンと差分値を取得したときに呼び出されるコールバック関数を設定する                
+        """
+        self.got_quat_distance_callback = callback
 
     async def connect(self):
         """
@@ -532,6 +785,13 @@ class Orphe:
         """
         await self.read_device_information()
         await self.client.start_notify(CHARACTERISTIC_SENSOR_VALUES_UUID, self.sensor_values_notification_handler)
+
+    async def step_analysis_notification_handler(self, sender, data):
+        """
+        ステップ解析の値を取得したときに呼び出されるハンドラ
+        """
+        # print(f"Step analysis: {data[1]}")
+        StepAnalysisData(self, data)
 
     async def start_step_analysis_notification(self):
         """

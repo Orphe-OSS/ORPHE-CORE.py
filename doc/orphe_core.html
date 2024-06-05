@@ -27,13 +27,14 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import asyncio
+import struct
 from datetime import datetime, timedelta
 from bleak import BleakClient, BleakScanner
 
 
 # キャラクタリスティックUUID
 CHARACTERISTIC_SENSOR_VALUES_UUID = &#34;f3f9c7ce-46ee-4205-89ac-abe64e626c0f&#34;
-CHARACTERISTIC_STEP_ANALYSIS_UUID = &#34;f3f9c7ce-46ee-4205-89ac-abe64e626c0f&#34;
+CHARACTERISTIC_STEP_ANALYSIS_UUID = &#34;4eb776dc-cf99-4af7-b2d3-ad0f791a79dd&#34;
 CHARACTERISTIC_DEVICE_INFORMATION_UUID = &#34;24354f22-1c46-430e-a4ab-a1eeabbcdfc0&#34;
 # デバイスのサービスUUID（例：OrpheのサービスUUID）
 SERVICE_ORPHE_INFORMATION_UUID = &#34;01a9d6b5-ff6e-444a-b266-0be75e85c064&#34;
@@ -88,6 +89,10 @@ class AccData:
         self.serial_number = 0
         self.packet_number = 0
 
+    def print(self):
+        print(
+            f&#34;Acc[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}&#34;)
+
 
 class GyroData:
     &#34;&#34;&#34;
@@ -109,6 +114,10 @@ class GyroData:
         self.timestamp = 0
         self.serial_number = 0
         self.packet_number = 0
+
+    def print(self):
+        print(
+            f&#34;Gyro[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}&#34;)
 
 
 class QuatData:
@@ -134,6 +143,10 @@ class QuatData:
         self.serial_number = 0
         self.packet_number = 0
 
+    def print(self):
+        print(
+            f&#34;Quat[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.w}, {self.x}, {self.y}, {self.z}&#34;)
+
 
 class Range:
     &#34;&#34;&#34;
@@ -147,6 +160,197 @@ class Range:
     def __init__(self):
         self.acc = 0
         self.gyro = 0
+
+
+class GaitData:
+    &#34;&#34;&#34;
+    歩行解析の値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4番目は最初の2ビット分が enumで歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
+        self.gait_type = data[4] &amp; 0b00000011
+        # 4番目は2,3,4ビット分がenumでストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
+        self.direction = (data[4] &amp; 0b00011100) &gt;&gt; 2
+        # data[6],data[7]はfloat16で総消費カロリー
+        self.calorie = struct.unpack(&#39;&gt;e&#39;, data[6:8])
+        # 8,9,10,11はfloat32で総移動距離
+        self.distance = struct.unpack(&#39;&gt;f&#39;, data[8:12])
+        # 12,13,14,15はfloat32で立脚期継続時間（standing phase duration）
+        self.standing_phase_duration = struct.unpack(&#39;&gt;f&#39;, data[12:16])
+        # 16,17,18,19はflaot32で遊脚期継続時間（swing_phase_duration)
+        self.swing_phase_duration = struct.unpack(&#39;&gt;f&#39;, data[16:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Gait type: {self.gait_type}&#34;)
+        print(f&#34;Direction: {self.direction}&#34;)
+        print(f&#34;Calorie: {self.calorie}&#34;)
+        print(f&#34;Distance: {self.distance}&#34;)
+        print(f&#34;Standing phase duration: {self.standing_phase_duration}&#34;)
+        print(f&#34;Swing phase duration: {self.swing_phase_duration}&#34;)
+
+
+class StrideData:
+    &#34;&#34;&#34;
+    ストライドの値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4,5,6,7はfloat32でフットアングル
+        self.foot_angle = struct.unpack(&#39;&gt;f&#39;, data[4:8])
+        # 8,9,10,11はfloat32でストライドX
+        self.x = struct.unpack(&#39;&gt;f&#39;, data[8:12])
+        # 12,13,14,15はfloat32でストライドY
+        self.y = struct.unpack(&#39;&gt;f&#39;, data[12:16])
+        # 16,17,18,19はfloat32でストライドZ
+        self.z = struct.unpack(&#39;&gt;f&#39;, data[16:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Foot angle: {self.foot_angle}&#34;)
+        print(f&#34;Stride X: {self.x}&#34;)
+        print(f&#34;Stride Y: {self.y}&#34;)
+        print(f&#34;Stride Z: {self.z}&#34;)
+
+
+class PronationData:
+    &#34;&#34;&#34;
+    プロネーションの値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4,5,6,7はfloat32で着地衝撃力[kgf](landing_impact)
+        self.landing_impact = struct.unpack(&#39;&gt;f&#39;, data[4:8])
+        # 8,9,10,11はプロネーションX[deg](x)
+        self.x = struct.unpack(&#39;&gt;f&#39;, data[8:12])
+        # 12,13,14,15はプロネーションY[deg](y)
+        self.y = struct.unpack(&#39;&gt;f&#39;, data[12:16])
+        # 16,17,18,19はプロネーションZ[deg](z)
+        self.z = struct.unpack(&#39;&gt;f&#39;, data[16:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Landing impact: {self.landing_impact}&#34;)
+        print(f&#34;Pronation X: {self.x}&#34;)
+        print(f&#34;Pronation Y: {self.y}&#34;)
+        print(f&#34;Pronation Z: {self.z}&#34;)
+
+
+class QuatDistanceData:
+    &#34;&#34;&#34;
+    クォータニオンと差分値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4は01ビットがenumの歩容フェイズ（0:なし, 1:立脚期, 2:遊脚期）
+        self.phase = data[4] &amp; 0b00000001
+        # 4は2,3,4ビットがenumの歩容ピリオド（0:なし,1:LoadingResponse, 2:MidStance, 3:TerminalStance, 4:InitialSwing, 5:MidSwing, 6:TerminalSwing）
+        self.period = (data[4] &amp; 0b00011110) &gt;&gt; 1
+        # 4は5,6,7ビットがenumの歩容イベント(0:なし, 1:InitialContact, 2:FootFlat, 3:HeelRise, 4:ToeOff, 5:FeetAdjacent, 6:TibiaVertical)
+        self.event = (data[4] &amp; 0b11100000) &gt;&gt; 5
+        # 6,7はfloat16でクォータニオンのw
+        self.w = struct.unpack(&#39;&gt;e&#39;, data[6:8])
+        # 8,9はfloat16でクォータニオンのx
+        self.x = struct.unpack(&#39;&gt;e&#39;, data[8:10])
+        # 10,11はfloat16でクォータニオンのy
+        self.y = struct.unpack(&#39;&gt;e&#39;, data[10:12])
+        # 12,13はfloat16でクォータニオンのz
+        self.z = struct.unpack(&#39;&gt;e&#39;, data[12:14])
+        # 14,15はfloat16で加速度力算出された単位時間のx移動距離
+        self.x_distance = struct.unpack(&#39;&gt;e&#39;, data[14:16])
+        # 16,17はfloat16で加速度力算出された単位時間のy移動距離
+        self.y_distance = struct.unpack(&#39;&gt;e&#39;, data[16:18])
+        # 18,19はfloat16で加速度力算出された単位時間のz移動距離
+        self.z_distance = struct.unpack(&#39;&gt;e&#39;, data[18:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Phase: {self.phase}&#34;)
+        print(f&#34;Period: {self.period}&#34;)
+        print(f&#34;Event: {self.event}&#34;)
+        print(f&#34;Quat: {self.w}, {self.x}, {self.y}, {self.z}&#34;)
+        print(
+            f&#34;Distance: {self.x_distance}, {self.y_distance}, {self.z_distance}&#34;)
+
+
+class StepAnalysisData:
+    &#34;&#34;&#34;
+    ステップ解析の値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, owner, data):
+        &#34;&#34;&#34;
+        コンストラクタ
+
+        data[1]のサブヘッダによって解析データの種類がわかる。対応するのは、0,1,2,3,4 である。また、0,1,2,3 に関してはデータ到着担保のために同じデータが二回連続で送信されてくるため、歩数カウントで更新すべきデータかどうかを判断する必要がある。
+
+        0: Gait Overview
+        1: Stride
+        2: Pronation
+        3: 未実装
+        4: クオータニオン
+        5: 未実装
+        6: 未実装
+
+        Args:
+            owner: オーナー（StepAnalysisDataを生成したオブジェクトで、Orpheクラスのインスタンスが入っている。これはコールバック関数を登録するため）
+            data: 生データ
+        &#34;&#34;&#34;
+        self.data = data
+
+        # gait overview
+        if data[1] == 0:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            if self.step_count &gt; owner.step_count.gait:
+                self.gait = GaitData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_gait_callback&#39;) and owner.got_gait_callback:
+                    owner.got_gait_callback(self.gait)
+            owner.step_count.gait = self.step_count
+        # stride
+        elif data[1] == 1:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            if self.step_count &gt; owner.step_count.stride:
+                self.stride = StrideData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_stride_callback&#39;) and owner.got_stride_callback:
+                    owner.got_stride_callback(self.stride)
+            owner.step_count.stride = self.step_count
+        # pronation
+        elif data[1] == 2:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            if self.step_count &gt; owner.step_count.pronation:
+                self.pronation = PronationData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_pronation_callback&#39;) and owner.got_pronation_callback:
+                    owner.got_pronation_callback(self.pronation)
+            owner.step_count.pronation = self.step_count
+        # quaternion
+        elif data[1] == 4:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            # if self.step_count &gt; owner.step_count.quat:
+            self.quat_distance = QuatDistanceData(data)
+            # コールバック関数が設定されている場合、コールバック関数を呼び出す
+            if hasattr(owner, &#39;got_quat_distance_callback&#39;) and owner.got_quat_distance_callback:
+                owner.got_quat_distance_callback(self.quat_distance)
+            owner.step_count.quat = self.step_count
 
 
 class SensorValuesData:
@@ -359,7 +563,19 @@ class DeviceInformation:
         self.device_information = None
 
 
+class StepCount:
+    &#34;&#34;&#34;
+    歩数を格納するクラス&#34;&#34;&#34;
+
+    def __init__(self):
+        self.gait = 0
+        self.stride = 0
+        self.pronation = 0
+        self.quat = 0
+
+
 class Orphe:
+
     &#34;&#34;&#34;
     ORPHE COREのBLE通信を行うクラス
     &#34;&#34;&#34;
@@ -370,6 +586,7 @@ class Orphe:
         &#34;&#34;&#34;
         self.serial_number_prev = 0
         self.client = None
+        self.step_count = StepCount()  # 歩数
 
     def set_got_acc_callback(self, callback):
         &#34;&#34;&#34;加速度センサの値を取得したときに呼び出されるコールバック関数を設定する。
@@ -404,6 +621,30 @@ class Orphe:
         クォータニオンの値を取得したときに呼び出されるコールバック関数を設定する
         &#34;&#34;&#34;
         self.got_quat_callback = callback
+
+    def set_got_gait_callback(self, callback):
+        &#34;&#34;&#34;
+        歩行解析の値を取得したときに呼び出されるコールバック関数を設定する
+        &#34;&#34;&#34;
+        self.got_gait_callback = callback
+
+    def set_got_stride_callback(self, callback):
+        &#34;&#34;&#34;
+        ストライドの値を取得したときに呼び出されるコールバック関数を設定する
+        &#34;&#34;&#34;
+        self.got_stride_callback = callback
+
+    def set_got_pronation_callback(self, callback):
+        &#34;&#34;&#34;
+        プロネーションの値を取得したときに呼び出されるコールバック関数を設定する
+        &#34;&#34;&#34;
+        self.got_pronation_callback = callback
+
+    def set_got_quat_distance_callback(self, callback):
+        &#34;&#34;&#34;
+        クォータニオンと差分値を取得したときに呼び出されるコールバック関数を設定する                
+        &#34;&#34;&#34;
+        self.got_quat_distance_callback = callback
 
     async def connect(self):
         &#34;&#34;&#34;
@@ -560,6 +801,13 @@ class Orphe:
         &#34;&#34;&#34;
         await self.read_device_information()
         await self.client.start_notify(CHARACTERISTIC_SENSOR_VALUES_UUID, self.sensor_values_notification_handler)
+
+    async def step_analysis_notification_handler(self, sender, data):
+        &#34;&#34;&#34;
+        ステップ解析の値を取得したときに呼び出されるハンドラ
+        &#34;&#34;&#34;
+        # print(f&#34;Step analysis: {data[1]}&#34;)
+        StepAnalysisData(self, data)
 
     async def start_step_analysis_notification(self):
         &#34;&#34;&#34;
@@ -688,8 +936,29 @@ class Orphe:
         self.z = 0
         self.timestamp = 0
         self.serial_number = 0
-        self.packet_number = 0</code></pre>
+        self.packet_number = 0
+
+    def print(self):
+        print(
+            f&#34;Acc[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}&#34;)</code></pre>
 </details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.AccData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(
+        f&#34;Acc[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="orphe_core.DeviceInformation"><code class="flex name class">
 <span>class <span class="ident">DeviceInformation</span></span>
@@ -745,6 +1014,70 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         self.device_information = None</code></pre>
 </details>
 </dd>
+<dt id="orphe_core.GaitData"><code class="flex name class">
+<span>class <span class="ident">GaitData</span></span>
+<span>(</span><span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>歩行解析の値を格納するクラス</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GaitData:
+    &#34;&#34;&#34;
+    歩行解析の値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4番目は最初の2ビット分が enumで歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
+        self.gait_type = data[4] &amp; 0b00000011
+        # 4番目は2,3,4ビット分がenumでストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
+        self.direction = (data[4] &amp; 0b00011100) &gt;&gt; 2
+        # data[6],data[7]はfloat16で総消費カロリー
+        self.calorie = struct.unpack(&#39;&gt;e&#39;, data[6:8])
+        # 8,9,10,11はfloat32で総移動距離
+        self.distance = struct.unpack(&#39;&gt;f&#39;, data[8:12])
+        # 12,13,14,15はfloat32で立脚期継続時間（standing phase duration）
+        self.standing_phase_duration = struct.unpack(&#39;&gt;f&#39;, data[12:16])
+        # 16,17,18,19はflaot32で遊脚期継続時間（swing_phase_duration)
+        self.swing_phase_duration = struct.unpack(&#39;&gt;f&#39;, data[16:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Gait type: {self.gait_type}&#34;)
+        print(f&#34;Direction: {self.direction}&#34;)
+        print(f&#34;Calorie: {self.calorie}&#34;)
+        print(f&#34;Distance: {self.distance}&#34;)
+        print(f&#34;Standing phase duration: {self.standing_phase_duration}&#34;)
+        print(f&#34;Swing phase duration: {self.swing_phase_duration}&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.GaitData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(f&#34;Step count: {self.step_count}&#34;)
+    print(f&#34;Gait type: {self.gait_type}&#34;)
+    print(f&#34;Direction: {self.direction}&#34;)
+    print(f&#34;Calorie: {self.calorie}&#34;)
+    print(f&#34;Distance: {self.distance}&#34;)
+    print(f&#34;Standing phase duration: {self.standing_phase_duration}&#34;)
+    print(f&#34;Swing phase duration: {self.swing_phase_duration}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="orphe_core.GyroData"><code class="flex name class">
 <span>class <span class="ident">GyroData</span></span>
 </code></dt>
@@ -788,8 +1121,29 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         self.z = 0
         self.timestamp = 0
         self.serial_number = 0
-        self.packet_number = 0</code></pre>
+        self.packet_number = 0
+
+    def print(self):
+        print(
+            f&#34;Gyro[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}&#34;)</code></pre>
 </details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.GyroData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(
+        f&#34;Gyro[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.x}, {self.y}, {self.z}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="orphe_core.Orphe"><code class="flex name class">
 <span>class <span class="ident">Orphe</span></span>
@@ -802,6 +1156,7 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Orphe:
+
     &#34;&#34;&#34;
     ORPHE COREのBLE通信を行うクラス
     &#34;&#34;&#34;
@@ -812,6 +1167,7 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         &#34;&#34;&#34;
         self.serial_number_prev = 0
         self.client = None
+        self.step_count = StepCount()  # 歩数
 
     def set_got_acc_callback(self, callback):
         &#34;&#34;&#34;加速度センサの値を取得したときに呼び出されるコールバック関数を設定する。
@@ -846,6 +1202,30 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         クォータニオンの値を取得したときに呼び出されるコールバック関数を設定する
         &#34;&#34;&#34;
         self.got_quat_callback = callback
+
+    def set_got_gait_callback(self, callback):
+        &#34;&#34;&#34;
+        歩行解析の値を取得したときに呼び出されるコールバック関数を設定する
+        &#34;&#34;&#34;
+        self.got_gait_callback = callback
+
+    def set_got_stride_callback(self, callback):
+        &#34;&#34;&#34;
+        ストライドの値を取得したときに呼び出されるコールバック関数を設定する
+        &#34;&#34;&#34;
+        self.got_stride_callback = callback
+
+    def set_got_pronation_callback(self, callback):
+        &#34;&#34;&#34;
+        プロネーションの値を取得したときに呼び出されるコールバック関数を設定する
+        &#34;&#34;&#34;
+        self.got_pronation_callback = callback
+
+    def set_got_quat_distance_callback(self, callback):
+        &#34;&#34;&#34;
+        クォータニオンと差分値を取得したときに呼び出されるコールバック関数を設定する                
+        &#34;&#34;&#34;
+        self.got_quat_distance_callback = callback
 
     async def connect(self):
         &#34;&#34;&#34;
@@ -1002,6 +1382,13 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         &#34;&#34;&#34;
         await self.read_device_information()
         await self.client.start_notify(CHARACTERISTIC_SENSOR_VALUES_UUID, self.sensor_values_notification_handler)
+
+    async def step_analysis_notification_handler(self, sender, data):
+        &#34;&#34;&#34;
+        ステップ解析の値を取得したときに呼び出されるハンドラ
+        &#34;&#34;&#34;
+        # print(f&#34;Step analysis: {data[1]}&#34;)
+        StepAnalysisData(self, data)
 
     async def start_step_analysis_notification(self):
         &#34;&#34;&#34;
@@ -1251,6 +1638,22 @@ Returns: None</p></div>
     self.got_converted_gyro_callback = callback</code></pre>
 </details>
 </dd>
+<dt id="orphe_core.Orphe.set_got_gait_callback"><code class="name flex">
+<span>def <span class="ident">set_got_gait_callback</span></span>(<span>self, callback)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>歩行解析の値を取得したときに呼び出されるコールバック関数を設定する</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_got_gait_callback(self, callback):
+    &#34;&#34;&#34;
+    歩行解析の値を取得したときに呼び出されるコールバック関数を設定する
+    &#34;&#34;&#34;
+    self.got_gait_callback = callback</code></pre>
+</details>
+</dd>
 <dt id="orphe_core.Orphe.set_got_gyro_callback"><code class="name flex">
 <span>def <span class="ident">set_got_gyro_callback</span></span>(<span>self, callback)</span>
 </code></dt>
@@ -1267,6 +1670,22 @@ Returns: None</p></div>
     self.got_gyro_callback = callback</code></pre>
 </details>
 </dd>
+<dt id="orphe_core.Orphe.set_got_pronation_callback"><code class="name flex">
+<span>def <span class="ident">set_got_pronation_callback</span></span>(<span>self, callback)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>プロネーションの値を取得したときに呼び出されるコールバック関数を設定する</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_got_pronation_callback(self, callback):
+    &#34;&#34;&#34;
+    プロネーションの値を取得したときに呼び出されるコールバック関数を設定する
+    &#34;&#34;&#34;
+    self.got_pronation_callback = callback</code></pre>
+</details>
+</dd>
 <dt id="orphe_core.Orphe.set_got_quat_callback"><code class="name flex">
 <span>def <span class="ident">set_got_quat_callback</span></span>(<span>self, callback)</span>
 </code></dt>
@@ -1281,6 +1700,38 @@ Returns: None</p></div>
     クォータニオンの値を取得したときに呼び出されるコールバック関数を設定する
     &#34;&#34;&#34;
     self.got_quat_callback = callback</code></pre>
+</details>
+</dd>
+<dt id="orphe_core.Orphe.set_got_quat_distance_callback"><code class="name flex">
+<span>def <span class="ident">set_got_quat_distance_callback</span></span>(<span>self, callback)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>クォータニオンと差分値を取得したときに呼び出されるコールバック関数を設定する</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_got_quat_distance_callback(self, callback):
+    &#34;&#34;&#34;
+    クォータニオンと差分値を取得したときに呼び出されるコールバック関数を設定する                
+    &#34;&#34;&#34;
+    self.got_quat_distance_callback = callback</code></pre>
+</details>
+</dd>
+<dt id="orphe_core.Orphe.set_got_stride_callback"><code class="name flex">
+<span>def <span class="ident">set_got_stride_callback</span></span>(<span>self, callback)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ストライドの値を取得したときに呼び出されるコールバック関数を設定する</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_got_stride_callback(self, callback):
+    &#34;&#34;&#34;
+    ストライドの値を取得したときに呼び出されるコールバック関数を設定する
+    &#34;&#34;&#34;
+    self.got_stride_callback = callback</code></pre>
 </details>
 </dd>
 <dt id="orphe_core.Orphe.set_gyro_range"><code class="name flex">
@@ -1381,6 +1832,23 @@ Returns: None</p></div>
     await self.client.start_notify(CHARACTERISTIC_STEP_ANALYSIS_UUID, self.step_analysis_notification_handler)</code></pre>
 </details>
 </dd>
+<dt id="orphe_core.Orphe.step_analysis_notification_handler"><code class="name flex">
+<span>async def <span class="ident">step_analysis_notification_handler</span></span>(<span>self, sender, data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ステップ解析の値を取得したときに呼び出されるハンドラ</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def step_analysis_notification_handler(self, sender, data):
+    &#34;&#34;&#34;
+    ステップ解析の値を取得したときに呼び出されるハンドラ
+    &#34;&#34;&#34;
+    # print(f&#34;Step analysis: {data[1]}&#34;)
+    StepAnalysisData(self, data)</code></pre>
+</details>
+</dd>
 <dt id="orphe_core.Orphe.stop_sensor_values_notification"><code class="name flex">
 <span>async def <span class="ident">stop_sensor_values_notification</span></span>(<span>self)</span>
 </code></dt>
@@ -1435,6 +1903,62 @@ Returns: None</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="orphe_core.PronationData"><code class="flex name class">
+<span>class <span class="ident">PronationData</span></span>
+<span>(</span><span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>プロネーションの値を格納するクラス</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PronationData:
+    &#34;&#34;&#34;
+    プロネーションの値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4,5,6,7はfloat32で着地衝撃力[kgf](landing_impact)
+        self.landing_impact = struct.unpack(&#39;&gt;f&#39;, data[4:8])
+        # 8,9,10,11はプロネーションX[deg](x)
+        self.x = struct.unpack(&#39;&gt;f&#39;, data[8:12])
+        # 12,13,14,15はプロネーションY[deg](y)
+        self.y = struct.unpack(&#39;&gt;f&#39;, data[12:16])
+        # 16,17,18,19はプロネーションZ[deg](z)
+        self.z = struct.unpack(&#39;&gt;f&#39;, data[16:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Landing impact: {self.landing_impact}&#34;)
+        print(f&#34;Pronation X: {self.x}&#34;)
+        print(f&#34;Pronation Y: {self.y}&#34;)
+        print(f&#34;Pronation Z: {self.z}&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.PronationData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(f&#34;Step count: {self.step_count}&#34;)
+    print(f&#34;Landing impact: {self.landing_impact}&#34;)
+    print(f&#34;Pronation X: {self.x}&#34;)
+    print(f&#34;Pronation Y: {self.y}&#34;)
+    print(f&#34;Pronation Z: {self.z}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="orphe_core.QuatData"><code class="flex name class">
 <span>class <span class="ident">QuatData</span></span>
 </code></dt>
@@ -1482,8 +2006,101 @@ Returns: None</p></div>
         self.z = 0
         self.timestamp = 0
         self.serial_number = 0
-        self.packet_number = 0</code></pre>
+        self.packet_number = 0
+
+    def print(self):
+        print(
+            f&#34;Quat[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.w}, {self.x}, {self.y}, {self.z}&#34;)</code></pre>
 </details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.QuatData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(
+        f&#34;Quat[{self.serial_number}][{self.packet_number}][{self.timestamp}]: {self.w}, {self.x}, {self.y}, {self.z}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="orphe_core.QuatDistanceData"><code class="flex name class">
+<span>class <span class="ident">QuatDistanceData</span></span>
+<span>(</span><span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>クォータニオンと差分値を格納するクラス</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class QuatDistanceData:
+    &#34;&#34;&#34;
+    クォータニオンと差分値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4は01ビットがenumの歩容フェイズ（0:なし, 1:立脚期, 2:遊脚期）
+        self.phase = data[4] &amp; 0b00000001
+        # 4は2,3,4ビットがenumの歩容ピリオド（0:なし,1:LoadingResponse, 2:MidStance, 3:TerminalStance, 4:InitialSwing, 5:MidSwing, 6:TerminalSwing）
+        self.period = (data[4] &amp; 0b00011110) &gt;&gt; 1
+        # 4は5,6,7ビットがenumの歩容イベント(0:なし, 1:InitialContact, 2:FootFlat, 3:HeelRise, 4:ToeOff, 5:FeetAdjacent, 6:TibiaVertical)
+        self.event = (data[4] &amp; 0b11100000) &gt;&gt; 5
+        # 6,7はfloat16でクォータニオンのw
+        self.w = struct.unpack(&#39;&gt;e&#39;, data[6:8])
+        # 8,9はfloat16でクォータニオンのx
+        self.x = struct.unpack(&#39;&gt;e&#39;, data[8:10])
+        # 10,11はfloat16でクォータニオンのy
+        self.y = struct.unpack(&#39;&gt;e&#39;, data[10:12])
+        # 12,13はfloat16でクォータニオンのz
+        self.z = struct.unpack(&#39;&gt;e&#39;, data[12:14])
+        # 14,15はfloat16で加速度力算出された単位時間のx移動距離
+        self.x_distance = struct.unpack(&#39;&gt;e&#39;, data[14:16])
+        # 16,17はfloat16で加速度力算出された単位時間のy移動距離
+        self.y_distance = struct.unpack(&#39;&gt;e&#39;, data[16:18])
+        # 18,19はfloat16で加速度力算出された単位時間のz移動距離
+        self.z_distance = struct.unpack(&#39;&gt;e&#39;, data[18:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Phase: {self.phase}&#34;)
+        print(f&#34;Period: {self.period}&#34;)
+        print(f&#34;Event: {self.event}&#34;)
+        print(f&#34;Quat: {self.w}, {self.x}, {self.y}, {self.z}&#34;)
+        print(
+            f&#34;Distance: {self.x_distance}, {self.y_distance}, {self.z_distance}&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.QuatDistanceData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(f&#34;Step count: {self.step_count}&#34;)
+    print(f&#34;Phase: {self.phase}&#34;)
+    print(f&#34;Period: {self.period}&#34;)
+    print(f&#34;Event: {self.event}&#34;)
+    print(f&#34;Quat: {self.w}, {self.x}, {self.y}, {self.z}&#34;)
+    print(
+        f&#34;Distance: {self.x_distance}, {self.y_distance}, {self.z_distance}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="orphe_core.Range"><code class="flex name class">
 <span>class <span class="ident">Range</span></span>
@@ -1734,6 +2351,175 @@ Returns: None</p></div>
             owner.got_quat_callback(self.quat)</code></pre>
 </details>
 </dd>
+<dt id="orphe_core.StepAnalysisData"><code class="flex name class">
+<span>class <span class="ident">StepAnalysisData</span></span>
+<span>(</span><span>owner, data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ステップ解析の値を格納するクラス</p>
+<p>コンストラクタ</p>
+<p>data[1]のサブヘッダによって解析データの種類がわかる。対応するのは、0,1,2,3,4 である。また、0,1,2,3 に関してはデータ到着担保のために同じデータが二回連続で送信されてくるため、歩数カウントで更新すべきデータかどうかを判断する必要がある。</p>
+<p>0: Gait Overview
+1: Stride
+2: Pronation
+3: 未実装
+4: クオータニオン
+5: 未実装
+6: 未実装</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>owner</code></strong></dt>
+<dd>オーナー（StepAnalysisDataを生成したオブジェクトで、Orpheクラスのインスタンスが入っている。これはコールバック関数を登録するため）</dd>
+<dt><strong><code>data</code></strong></dt>
+<dd>生データ</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StepAnalysisData:
+    &#34;&#34;&#34;
+    ステップ解析の値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, owner, data):
+        &#34;&#34;&#34;
+        コンストラクタ
+
+        data[1]のサブヘッダによって解析データの種類がわかる。対応するのは、0,1,2,3,4 である。また、0,1,2,3 に関してはデータ到着担保のために同じデータが二回連続で送信されてくるため、歩数カウントで更新すべきデータかどうかを判断する必要がある。
+
+        0: Gait Overview
+        1: Stride
+        2: Pronation
+        3: 未実装
+        4: クオータニオン
+        5: 未実装
+        6: 未実装
+
+        Args:
+            owner: オーナー（StepAnalysisDataを生成したオブジェクトで、Orpheクラスのインスタンスが入っている。これはコールバック関数を登録するため）
+            data: 生データ
+        &#34;&#34;&#34;
+        self.data = data
+
+        # gait overview
+        if data[1] == 0:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            if self.step_count &gt; owner.step_count.gait:
+                self.gait = GaitData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_gait_callback&#39;) and owner.got_gait_callback:
+                    owner.got_gait_callback(self.gait)
+            owner.step_count.gait = self.step_count
+        # stride
+        elif data[1] == 1:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            if self.step_count &gt; owner.step_count.stride:
+                self.stride = StrideData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_stride_callback&#39;) and owner.got_stride_callback:
+                    owner.got_stride_callback(self.stride)
+            owner.step_count.stride = self.step_count
+        # pronation
+        elif data[1] == 2:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            if self.step_count &gt; owner.step_count.pronation:
+                self.pronation = PronationData(data)
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_pronation_callback&#39;) and owner.got_pronation_callback:
+                    owner.got_pronation_callback(self.pronation)
+            owner.step_count.pronation = self.step_count
+        # quaternion
+        elif data[1] == 4:
+            self.step_count = int.from_bytes(
+                data[2:4], byteorder=&#39;big&#39;, signed=False)
+            # if self.step_count &gt; owner.step_count.quat:
+            self.quat_distance = QuatDistanceData(data)
+            # コールバック関数が設定されている場合、コールバック関数を呼び出す
+            if hasattr(owner, &#39;got_quat_distance_callback&#39;) and owner.got_quat_distance_callback:
+                owner.got_quat_distance_callback(self.quat_distance)
+            owner.step_count.quat = self.step_count</code></pre>
+</details>
+</dd>
+<dt id="orphe_core.StepCount"><code class="flex name class">
+<span>class <span class="ident">StepCount</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>歩数を格納するクラス</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StepCount:
+    &#34;&#34;&#34;
+    歩数を格納するクラス&#34;&#34;&#34;
+
+    def __init__(self):
+        self.gait = 0
+        self.stride = 0
+        self.pronation = 0
+        self.quat = 0</code></pre>
+</details>
+</dd>
+<dt id="orphe_core.StrideData"><code class="flex name class">
+<span>class <span class="ident">StrideData</span></span>
+<span>(</span><span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ストライドの値を格納するクラス</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StrideData:
+    &#34;&#34;&#34;
+    ストライドの値を格納するクラス
+    &#34;&#34;&#34;
+
+    def __init__(self, data):
+        # 2,3は Uint16 で歩数が入っている
+        self.step_count = int.from_bytes(
+            data[2:4], byteorder=&#39;big&#39;, signed=False)
+        # 4,5,6,7はfloat32でフットアングル
+        self.foot_angle = struct.unpack(&#39;&gt;f&#39;, data[4:8])
+        # 8,9,10,11はfloat32でストライドX
+        self.x = struct.unpack(&#39;&gt;f&#39;, data[8:12])
+        # 12,13,14,15はfloat32でストライドY
+        self.y = struct.unpack(&#39;&gt;f&#39;, data[12:16])
+        # 16,17,18,19はfloat32でストライドZ
+        self.z = struct.unpack(&#39;&gt;f&#39;, data[16:20])
+
+    def print(self):
+        print(f&#34;Step count: {self.step_count}&#34;)
+        print(f&#34;Foot angle: {self.foot_angle}&#34;)
+        print(f&#34;Stride X: {self.x}&#34;)
+        print(f&#34;Stride Y: {self.y}&#34;)
+        print(f&#34;Stride Z: {self.z}&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="orphe_core.StrideData.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    print(f&#34;Step count: {self.step_count}&#34;)
+    print(f&#34;Foot angle: {self.foot_angle}&#34;)
+    print(f&#34;Stride X: {self.x}&#34;)
+    print(f&#34;Stride Y: {self.y}&#34;)
+    print(f&#34;Stride Z: {self.z}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -1752,12 +2538,24 @@ Returns: None</p></div>
 <ul>
 <li>
 <h4><code><a title="orphe_core.AccData" href="#orphe_core.AccData">AccData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.AccData.print" href="#orphe_core.AccData.print">print</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="orphe_core.DeviceInformation" href="#orphe_core.DeviceInformation">DeviceInformation</a></code></h4>
 </li>
 <li>
+<h4><code><a title="orphe_core.GaitData" href="#orphe_core.GaitData">GaitData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.GaitData.print" href="#orphe_core.GaitData.print">print</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="orphe_core.GyroData" href="#orphe_core.GyroData">GyroData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.GyroData.print" href="#orphe_core.GyroData.print">print</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="orphe_core.Orphe" href="#orphe_core.Orphe">Orphe</a></code></h4>
@@ -1771,25 +2569,57 @@ Returns: None</p></div>
 <li><code><a title="orphe_core.Orphe.set_got_acc_callback" href="#orphe_core.Orphe.set_got_acc_callback">set_got_acc_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_got_converted_acc_callback" href="#orphe_core.Orphe.set_got_converted_acc_callback">set_got_converted_acc_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_got_converted_gyro_callback" href="#orphe_core.Orphe.set_got_converted_gyro_callback">set_got_converted_gyro_callback</a></code></li>
+<li><code><a title="orphe_core.Orphe.set_got_gait_callback" href="#orphe_core.Orphe.set_got_gait_callback">set_got_gait_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_got_gyro_callback" href="#orphe_core.Orphe.set_got_gyro_callback">set_got_gyro_callback</a></code></li>
+<li><code><a title="orphe_core.Orphe.set_got_pronation_callback" href="#orphe_core.Orphe.set_got_pronation_callback">set_got_pronation_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_got_quat_callback" href="#orphe_core.Orphe.set_got_quat_callback">set_got_quat_callback</a></code></li>
+<li><code><a title="orphe_core.Orphe.set_got_quat_distance_callback" href="#orphe_core.Orphe.set_got_quat_distance_callback">set_got_quat_distance_callback</a></code></li>
+<li><code><a title="orphe_core.Orphe.set_got_stride_callback" href="#orphe_core.Orphe.set_got_stride_callback">set_got_stride_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_gyro_range" href="#orphe_core.Orphe.set_gyro_range">set_gyro_range</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_led" href="#orphe_core.Orphe.set_led">set_led</a></code></li>
 <li><code><a title="orphe_core.Orphe.start_sensor_values_notification" href="#orphe_core.Orphe.start_sensor_values_notification">start_sensor_values_notification</a></code></li>
 <li><code><a title="orphe_core.Orphe.start_step_analysis_notification" href="#orphe_core.Orphe.start_step_analysis_notification">start_step_analysis_notification</a></code></li>
+<li><code><a title="orphe_core.Orphe.step_analysis_notification_handler" href="#orphe_core.Orphe.step_analysis_notification_handler">step_analysis_notification_handler</a></code></li>
 <li><code><a title="orphe_core.Orphe.stop_sensor_values_notification" href="#orphe_core.Orphe.stop_sensor_values_notification">stop_sensor_values_notification</a></code></li>
 <li><code><a title="orphe_core.Orphe.stop_step_analysis_notification" href="#orphe_core.Orphe.stop_step_analysis_notification">stop_step_analysis_notification</a></code></li>
 <li><code><a title="orphe_core.Orphe.write_device_information" href="#orphe_core.Orphe.write_device_information">write_device_information</a></code></li>
 </ul>
 </li>
 <li>
+<h4><code><a title="orphe_core.PronationData" href="#orphe_core.PronationData">PronationData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.PronationData.print" href="#orphe_core.PronationData.print">print</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="orphe_core.QuatData" href="#orphe_core.QuatData">QuatData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.QuatData.print" href="#orphe_core.QuatData.print">print</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="orphe_core.QuatDistanceData" href="#orphe_core.QuatDistanceData">QuatDistanceData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.QuatDistanceData.print" href="#orphe_core.QuatDistanceData.print">print</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="orphe_core.Range" href="#orphe_core.Range">Range</a></code></h4>
 </li>
 <li>
 <h4><code><a title="orphe_core.SensorValuesData" href="#orphe_core.SensorValuesData">SensorValuesData</a></code></h4>
+</li>
+<li>
+<h4><code><a title="orphe_core.StepAnalysisData" href="#orphe_core.StepAnalysisData">StepAnalysisData</a></code></h4>
+</li>
+<li>
+<h4><code><a title="orphe_core.StepCount" href="#orphe_core.StepCount">StepCount</a></code></h4>
+</li>
+<li>
+<h4><code><a title="orphe_core.StrideData" href="#orphe_core.StrideData">StrideData</a></code></h4>
+<ul class="">
+<li><code><a title="orphe_core.StrideData.print" href="#orphe_core.StrideData.print">print</a></code></li>
+</ul>
 </li>
 </ul>
 </li>
