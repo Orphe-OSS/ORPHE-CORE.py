@@ -34,13 +34,13 @@ python get_step_analysis.py
 
 ## ドキュメント
   * doc/index.html をブラウザで開くと、ドキュメントを閲覧できます。または以下のリンクから直接アクセスできます。
-  * [ORPHE CORE Python Library](https://orphe-oss.github.io/ORPHE-CORE.py/doc/index.html)
+  * [ORPHE CORE Python Library](https://orphe-oss.github.io/ORPHE-CORE.py/docs/api/orphe_core.html)
 
 ### 生成方法
 orphe_core.pyのdocstringからドキュメントを生成します。htmlファイルの生成には pdoc3 を利用しています。orphe_core.pyのdocstringを書き換えたり、機能を追加した場合は以下のコマンドでドキュメントを再生成してください。
 ```bash
 pip install pdoc3
-pdoc orphe_core --html -o doc --force
+pdoc orphe_core --html -o docs/api --force
 ```
 
 ## Compatibility

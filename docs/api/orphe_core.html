@@ -38,7 +38,7 @@ CHARACTERISTIC_STEP_ANALYSIS_UUID = &#34;4eb776dc-cf99-4af7-b2d3-ad0f791a79dd&#3
 CHARACTERISTIC_DEVICE_INFORMATION_UUID = &#34;24354f22-1c46-430e-a4ab-a1eeabbcdfc0&#34;
 # デバイスのサービスUUID（例：OrpheのサービスUUID）
 SERVICE_ORPHE_INFORMATION_UUID = &#34;01a9d6b5-ff6e-444a-b266-0be75e85c064&#34;
-SERVICE_OTHER_UUID = &#34;01a9d6b5-ff6e-444a-b266-0be75e85c064&#34;
+SERVICE_OTHER_UUID = &#34;db1b7aca-cda5-4453-a49b-33a53d3f0833&#34;
 
 WRITE_WAIT_INTERVAL_SEC = 0.2
 
@@ -454,6 +454,18 @@ class SensorValuesData:
                     self.converted_gyro.timestamp = each_timestamp
                     self.quat.timestamp = each_timestamp
 
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_acc_callback&#39;) and owner.got_acc_callback:
+                    owner.got_acc_callback(self.acc)
+                if hasattr(owner, &#39;got_converted_acc_callback&#39;) and owner.got_converted_acc_callback:
+                    owner.got_converted_acc_callback(self.converted_acc)
+                if hasattr(owner, &#39;got_gyro_callback&#39;) and owner.got_gyro_callback:
+                    owner.got_gyro_callback(self.gyro)
+                if hasattr(owner, &#39;got_converted_gyro_callback&#39;) and owner.got_converted_gyro_callback:
+                    owner.got_converted_gyro_callback(self.converted_gyro)
+                if hasattr(owner, &#39;got_quat_callback&#39;) and owner.got_quat_callback:
+                    owner.got_quat_callback(self.quat)
+
         elif data[0] == 40:
             self.data = data
             self.type = int.from_bytes(
@@ -516,17 +528,17 @@ class SensorValuesData:
             self.converted_acc.timestamp = self.timestamp
             self.converted_gyro.timestamp = self.timestamp
 
-        # コールバック関数が設定されている場合、コールバック関数を呼び出す
-        if hasattr(owner, &#39;got_acc_callback&#39;) and owner.got_acc_callback:
-            owner.got_acc_callback(self.acc)
-        if hasattr(owner, &#39;got_converted_acc_callback&#39;) and owner.got_converted_acc_callback:
-            owner.got_converted_acc_callback(self.converted_acc)
-        if hasattr(owner, &#39;got_gyro_callback&#39;) and owner.got_gyro_callback:
-            owner.got_gyro_callback(self.gyro)
-        if hasattr(owner, &#39;got_converted_gyro_callback&#39;) and owner.got_converted_gyro_callback:
-            owner.got_converted_gyro_callback(self.converted_gyro)
-        if hasattr(owner, &#39;got_quat_callback&#39;) and owner.got_quat_callback:
-            owner.got_quat_callback(self.quat)
+            # コールバック関数が設定されている場合、コールバック関数を呼び出す
+            if hasattr(owner, &#39;got_acc_callback&#39;) and owner.got_acc_callback:
+                owner.got_acc_callback(self.acc)
+            if hasattr(owner, &#39;got_converted_acc_callback&#39;) and owner.got_converted_acc_callback:
+                owner.got_converted_acc_callback(self.converted_acc)
+            if hasattr(owner, &#39;got_gyro_callback&#39;) and owner.got_gyro_callback:
+                owner.got_gyro_callback(self.gyro)
+            if hasattr(owner, &#39;got_converted_gyro_callback&#39;) and owner.got_converted_gyro_callback:
+                owner.got_converted_gyro_callback(self.converted_gyro)
+            if hasattr(owner, &#39;got_quat_callback&#39;) and owner.got_quat_callback:
+                owner.got_quat_callback(self.quat)
 
 
 class DeviceInformation:
@@ -2276,6 +2288,18 @@ Returns: None</p></div>
                     self.converted_gyro.timestamp = each_timestamp
                     self.quat.timestamp = each_timestamp
 
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(owner, &#39;got_acc_callback&#39;) and owner.got_acc_callback:
+                    owner.got_acc_callback(self.acc)
+                if hasattr(owner, &#39;got_converted_acc_callback&#39;) and owner.got_converted_acc_callback:
+                    owner.got_converted_acc_callback(self.converted_acc)
+                if hasattr(owner, &#39;got_gyro_callback&#39;) and owner.got_gyro_callback:
+                    owner.got_gyro_callback(self.gyro)
+                if hasattr(owner, &#39;got_converted_gyro_callback&#39;) and owner.got_converted_gyro_callback:
+                    owner.got_converted_gyro_callback(self.converted_gyro)
+                if hasattr(owner, &#39;got_quat_callback&#39;) and owner.got_quat_callback:
+                    owner.got_quat_callback(self.quat)
+
         elif data[0] == 40:
             self.data = data
             self.type = int.from_bytes(
@@ -2338,17 +2362,17 @@ Returns: None</p></div>
             self.converted_acc.timestamp = self.timestamp
             self.converted_gyro.timestamp = self.timestamp
 
-        # コールバック関数が設定されている場合、コールバック関数を呼び出す
-        if hasattr(owner, &#39;got_acc_callback&#39;) and owner.got_acc_callback:
-            owner.got_acc_callback(self.acc)
-        if hasattr(owner, &#39;got_converted_acc_callback&#39;) and owner.got_converted_acc_callback:
-            owner.got_converted_acc_callback(self.converted_acc)
-        if hasattr(owner, &#39;got_gyro_callback&#39;) and owner.got_gyro_callback:
-            owner.got_gyro_callback(self.gyro)
-        if hasattr(owner, &#39;got_converted_gyro_callback&#39;) and owner.got_converted_gyro_callback:
-            owner.got_converted_gyro_callback(self.converted_gyro)
-        if hasattr(owner, &#39;got_quat_callback&#39;) and owner.got_quat_callback:
-            owner.got_quat_callback(self.quat)</code></pre>
+            # コールバック関数が設定されている場合、コールバック関数を呼び出す
+            if hasattr(owner, &#39;got_acc_callback&#39;) and owner.got_acc_callback:
+                owner.got_acc_callback(self.acc)
+            if hasattr(owner, &#39;got_converted_acc_callback&#39;) and owner.got_converted_acc_callback:
+                owner.got_converted_acc_callback(self.converted_acc)
+            if hasattr(owner, &#39;got_gyro_callback&#39;) and owner.got_gyro_callback:
+                owner.got_gyro_callback(self.gyro)
+            if hasattr(owner, &#39;got_converted_gyro_callback&#39;) and owner.got_converted_gyro_callback:
+                owner.got_converted_gyro_callback(self.converted_gyro)
+            if hasattr(owner, &#39;got_quat_callback&#39;) and owner.got_quat_callback:
+                owner.got_quat_callback(self.quat)</code></pre>
 </details>
 </dd>
 <dt id="orphe_core.StepAnalysisData"><code class="flex name class">
