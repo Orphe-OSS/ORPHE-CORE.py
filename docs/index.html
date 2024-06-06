@@ -1,0 +1,126 @@
+<script>
+    var last_modified = `
+    Last modified: 2024/06/06 18:02:33
+    `;
+</script>
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ORPHE-CORE.py</title>
+
+    <link href="./css/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/vs2015.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css" />
+    <link href="./css/orphe_custom.css" rel="stylesheet">
+</head>
+
+
+<body class="bg-dark">
+    <div class="container-sm mt-2">
+        <nav class="navbar fixed-top navbar-light bg-base position-relative navbar-expand-lg">
+            <span id="last_modified" class="position-absolute top-25 end-0 badge bg-base border-light p-1"
+                style="font-size:0.7em;">
+            </span>
+
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <a class="navbar-brand" href="https://orphe.io/">
+                        <img src="./images/orphe.svg" alt="" height="24" class="d-inline-block align-text-top">
+                    </a>
+                    <script>
+                        document.querySelector('#last_modified').innerText = last_modified;
+                    </script>
+                </span>
+
+            </div>
+        </nav>
+    </div>
+
+    <div class="container-sm mt-5">
+        <h1 class="display-1 mt-4">ORPHE-CORE.py</h1>
+        <section class="ms-4">
+            <p>
+                ORPHE-CORE.pyはORPHE CORE Module (以後コアモジュールと呼びます)を python から制御するためのライブラリです。
+                コアモジュールには大きく分けてBLE、モーションセンサ、LED機能が実装されています。開発者の皆さんはこのライブラリを使って、手軽にコアモジュールのLEDを光らせたり、モーションセンサの値を取得したりすることができます。
+            </p>
+            <p>
+                <mark>現在このページは準備中となっております。コアモジュールの利用方法については <a href="https://github.com/Orphe-OSS/ORPHE-CORE.py"
+                        target="_blank">githubのREADME</a>をご参照ください。</mark>
+
+            </p>
+        </section>
+
+        <footer class="text-center small mt-5 mb-5">
+            <hr>
+            &copy; 2024 ORPHE Inc.
+        </footer>
+    </div>
+
+    <script src="../js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
+    <script src="../js/run_prettify.js?skin=sunburst"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
+    <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
+
+    <script>
+        function copyInputValue(button_dom, id) {
+            console.log(id);
+            let dom = document.querySelector(id);
+            dom.select();
+            document.execCommand("copy");
+            dom.classList.remove('bg-secondary')
+            dom.classList.add('bg-primary')
+            let v_prev = dom.value;
+            button_dom.innerHTML = "COPIED";
+            //dom.value = 'COPIED!!' + v_prev;
+            setTimeout(function () {
+                //console.log(dom);
+                dom.classList.remove('bg-primary')
+                dom.classList.add('bg-secondary')
+                //dom.value = v_prev;
+                dom.blur();
+                button_dom.innerHTML = '<i class="bi bi-clipboard"></i>';
+
+            }, 1000, dom)
+
+
+        }
+
+    </script>
+    <script>
+        hljs.highlightAll();
+        hljs.addPlugin(new CopyButtonPlugin());
+
+        // domのロードが終わったら
+        document.addEventListener('DOMContentLoaded', function () {
+            // 全ての <link> 要素を取得
+            const links = document.getElementsByTagName('cite');
+            // const baseURL = 'https://orphe-oss.github.io/ORPHE-CORE.js/api_doc/module-Orphe-Orphe.html';
+            const baseURL = '../api_doc/module-Orphe-Orphe.html';
+            const target = "_blank"
+
+            // 取得した <cite> 要素を <a> 要素に置換
+            while (links.length > 0) {
+                const link = links[0];
+                const text = link.innerHTML;
+                const a = document.createElement('a');
+                a.href = `${baseURL}#${text}`;
+                a.innerHTML = text;
+                a.setAttribute('target', target);
+                link.parentNode.replaceChild(a, link);
+            }
+        });
+    </script>
+</body>
+
+</html>
