@@ -1,10 +1,6 @@
 # ORPHE-CORE.py
 Happy hacking for ORPHE CORE with python!!
 
-
-> [!IMPORTANT]
-> このリポジトリはプライベートです。とりあえずコアモジュールをpythonでいじって遊んで、それをメンバー内で共有できるようにするためのリポジトリです。playgroundとしてまずは使います。徐々にライブラリ orphe_core.py として整備していきます。
-
 ## Installation
 ```bash
 git clone https://github.com/Orphe-OSS/ORPHE-CORE.py.git
@@ -37,7 +33,8 @@ python get_step_analysis.py
 ```
 
 ## ドキュメント
-  * doc/index.html をブラウザで開くと、ドキュメントを閲覧できます。
+  * doc/index.html をブラウザで開くと、ドキュメントを閲覧できます。または以下のリンクから直接アクセスできます。
+  * [ORPHE CORE Python Library](https://orphe-oss.github.io/ORPHE-CORE.py/doc/index.html)
 
 ### 生成方法
 orphe_core.pyのdocstringからドキュメントを生成します。htmlファイルの生成には pdoc3 を利用しています。orphe_core.pyのdocstringを書き換えたり、機能を追加した場合は以下のコマンドでドキュメントを再生成してください。
