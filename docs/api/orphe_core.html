@@ -658,22 +658,46 @@ class Orphe:
         &#34;&#34;&#34;
         self.got_quat_distance_callback = callback
 
-    async def connect(self):
+    async def scan_all_devices(self):
+        &#34;&#34;&#34;
+        すべてのBLEデバイスをスキャンして、その結果を返す
+
+        Returns:
+            BLEデバイスのリスト
+        &#34;&#34;&#34;
+        print(&#34;Scanning all BLE devices...&#34;)
+        devices = await BleakScanner.discover()
+        return devices
+
+    async def connect(self, address=None):
         &#34;&#34;&#34;
         ORPHE COREと接続する
 
+        Args:
+            address: 接続するデバイスのアドレス。指定しない場合はスキャンしてSERVICE UUIDで合致するものに接続する
         Returns: 
             接続に成功した場合はTrue、失敗した場合はFalse
         &#34;&#34;&#34;
-        print(&#34;Scanning for ORPHE CORE BLE device...&#34;)
+        print(
+            f&#34;Scanning for ORPHE CORE BLE device...[address specified: {address}]&#34;)
         devices = await BleakScanner.discover()
 
         target_device = None
-        for device in devices:
-            if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
-                target_device = device
-                print(f&#34;Found target device: {device.name}, {device.address}&#34;)
-                break
+
+        if address is not None:
+            for device in devices:
+                if device.address == address:
+                    target_device = device
+                    print(
+                        f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
+                    break
+        else:
+            for device in devices:
+                if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
+                    target_device = device
+                    print(
+                        f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
+                    break
 
         if target_device is None:
             print(&#34;Target device not found.&#34;)
@@ -681,7 +705,7 @@ class Orphe:
 
         self.client = BleakClient(target_device.address)
         await self.client.connect()
-        if await self.client.is_connected():
+        if self.client.is_connected:
             print(&#34;Connected to the device&#34;)
             return True
         else:
@@ -720,7 +744,7 @@ class Orphe:
         pattern(int): 0-4
         Returns: None
         &#34;&#34;&#34;
-        print(f&#34;Setting LED: {is_on}, {pattern}&#34;)
+        # print(f&#34;Setting LED: {is_on}, {pattern}&#34;)
         # is_on, patternの値の範囲をチェック
         if is_on &lt; 0 or is_on &gt; 1:
             print(&#34;is_on must be 0 or 1.&#34;)
@@ -784,7 +808,7 @@ class Orphe:
         &#34;&#34;&#34;
         デバイス情報を書き込む。書き込み後にすぐデバイスインフォメーションを読み込むと正しいデータが取得できないため、WRITE_WAIT_INTERVAL_SEC秒待つ
         &#34;&#34;&#34;
-        print(f&#34;Writing device information: {ba}&#34;)
+        # print(f&#34;Writing device information: {ba}&#34;)
         await self.client.write_gatt_char(CHARACTERISTIC_DEVICE_INFORMATION_UUID, ba)
 
         # 100ms待つ（これがないと即座にdevice informationを読み込まれると正しいデータ取得ができないため）
@@ -1239,22 +1263,46 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         &#34;&#34;&#34;
         self.got_quat_distance_callback = callback
 
-    async def connect(self):
+    async def scan_all_devices(self):
+        &#34;&#34;&#34;
+        すべてのBLEデバイスをスキャンして、その結果を返す
+
+        Returns:
+            BLEデバイスのリスト
+        &#34;&#34;&#34;
+        print(&#34;Scanning all BLE devices...&#34;)
+        devices = await BleakScanner.discover()
+        return devices
+
+    async def connect(self, address=None):
         &#34;&#34;&#34;
         ORPHE COREと接続する
 
+        Args:
+            address: 接続するデバイスのアドレス。指定しない場合はスキャンしてSERVICE UUIDで合致するものに接続する
         Returns: 
             接続に成功した場合はTrue、失敗した場合はFalse
         &#34;&#34;&#34;
-        print(&#34;Scanning for ORPHE CORE BLE device...&#34;)
+        print(
+            f&#34;Scanning for ORPHE CORE BLE device...[address specified: {address}]&#34;)
         devices = await BleakScanner.discover()
 
         target_device = None
-        for device in devices:
-            if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
-                target_device = device
-                print(f&#34;Found target device: {device.name}, {device.address}&#34;)
-                break
+
+        if address is not None:
+            for device in devices:
+                if device.address == address:
+                    target_device = device
+                    print(
+                        f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
+                    break
+        else:
+            for device in devices:
+                if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
+                    target_device = device
+                    print(
+                        f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
+                    break
 
         if target_device is None:
             print(&#34;Target device not found.&#34;)
@@ -1262,7 +1310,7 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
 
         self.client = BleakClient(target_device.address)
         await self.client.connect()
-        if await self.client.is_connected():
+        if self.client.is_connected:
             print(&#34;Connected to the device&#34;)
             return True
         else:
@@ -1301,7 +1349,7 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         pattern(int): 0-4
         Returns: None
         &#34;&#34;&#34;
-        print(f&#34;Setting LED: {is_on}, {pattern}&#34;)
+        # print(f&#34;Setting LED: {is_on}, {pattern}&#34;)
         # is_on, patternの値の範囲をチェック
         if is_on &lt; 0 or is_on &gt; 1:
             print(&#34;is_on must be 0 or 1.&#34;)
@@ -1365,7 +1413,7 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         &#34;&#34;&#34;
         デバイス情報を書き込む。書き込み後にすぐデバイスインフォメーションを読み込むと正しいデータが取得できないため、WRITE_WAIT_INTERVAL_SEC秒待つ
         &#34;&#34;&#34;
-        print(f&#34;Writing device information: {ba}&#34;)
+        # print(f&#34;Writing device information: {ba}&#34;)
         await self.client.write_gatt_char(CHARACTERISTIC_DEVICE_INFORMATION_UUID, ba)
 
         # 100ms待つ（これがないと即座にdevice informationを読み込まれると正しいデータ取得ができないため）
@@ -1429,32 +1477,50 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
 <h3>Methods</h3>
 <dl>
 <dt id="orphe_core.Orphe.connect"><code class="name flex">
-<span>async def <span class="ident">connect</span></span>(<span>self)</span>
+<span>async def <span class="ident">connect</span></span>(<span>self, address=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>ORPHE COREと接続する</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>address</code></strong></dt>
+<dd>接続するデバイスのアドレス。指定しない場合はスキャンしてSERVICE UUIDで合致するものに接続する</dd>
+</dl>
 <p>Returns:
 接続に成功した場合はTrue、失敗した場合はFalse</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def connect(self):
+<pre><code class="python">async def connect(self, address=None):
     &#34;&#34;&#34;
     ORPHE COREと接続する
 
+    Args:
+        address: 接続するデバイスのアドレス。指定しない場合はスキャンしてSERVICE UUIDで合致するものに接続する
     Returns: 
         接続に成功した場合はTrue、失敗した場合はFalse
     &#34;&#34;&#34;
-    print(&#34;Scanning for ORPHE CORE BLE device...&#34;)
+    print(
+        f&#34;Scanning for ORPHE CORE BLE device...[address specified: {address}]&#34;)
     devices = await BleakScanner.discover()
 
     target_device = None
-    for device in devices:
-        if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
-            target_device = device
-            print(f&#34;Found target device: {device.name}, {device.address}&#34;)
-            break
+
+    if address is not None:
+        for device in devices:
+            if device.address == address:
+                target_device = device
+                print(
+                    f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
+                break
+    else:
+        for device in devices:
+            if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
+                target_device = device
+                print(
+                    f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
+                break
 
     if target_device is None:
         print(&#34;Target device not found.&#34;)
@@ -1462,7 +1528,7 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
 
     self.client = BleakClient(target_device.address)
     await self.client.connect()
-    if await self.client.is_connected():
+    if self.client.is_connected:
         print(&#34;Connected to the device&#34;)
         return True
     else:
@@ -1531,6 +1597,29 @@ Returns: DeviceInformationクラスのインスタンス</p></div>
     di = DeviceInformation(di)
     self.device_information = di  # デバイス情報をメンバ変数として保存（更新）しておく
     return di</code></pre>
+</details>
+</dd>
+<dt id="orphe_core.Orphe.scan_all_devices"><code class="name flex">
+<span>async def <span class="ident">scan_all_devices</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>すべてのBLEデバイスをスキャンして、その結果を返す</p>
+<h2 id="returns">Returns</h2>
+<p>BLEデバイスのリスト</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def scan_all_devices(self):
+    &#34;&#34;&#34;
+    すべてのBLEデバイスをスキャンして、その結果を返す
+
+    Returns:
+        BLEデバイスのリスト
+    &#34;&#34;&#34;
+    print(&#34;Scanning all BLE devices...&#34;)
+    devices = await BleakScanner.discover()
+    return devices</code></pre>
 </details>
 </dd>
 <dt id="orphe_core.Orphe.sensor_values_notification_handler"><code class="name flex">
@@ -1798,7 +1887,7 @@ Returns: None</p></div>
     pattern(int): 0-4
     Returns: None
     &#34;&#34;&#34;
-    print(f&#34;Setting LED: {is_on}, {pattern}&#34;)
+    # print(f&#34;Setting LED: {is_on}, {pattern}&#34;)
     # is_on, patternの値の範囲をチェック
     if is_on &lt; 0 or is_on &gt; 1:
         print(&#34;is_on must be 0 or 1.&#34;)
@@ -1906,7 +1995,7 @@ Returns: None</p></div>
     &#34;&#34;&#34;
     デバイス情報を書き込む。書き込み後にすぐデバイスインフォメーションを読み込むと正しいデータが取得できないため、WRITE_WAIT_INTERVAL_SEC秒待つ
     &#34;&#34;&#34;
-    print(f&#34;Writing device information: {ba}&#34;)
+    # print(f&#34;Writing device information: {ba}&#34;)
     await self.client.write_gatt_char(CHARACTERISTIC_DEVICE_INFORMATION_UUID, ba)
 
     # 100ms待つ（これがないと即座にdevice informationを読み込まれると正しいデータ取得ができないため）
@@ -2588,6 +2677,7 @@ Returns: None</p></div>
 <li><code><a title="orphe_core.Orphe.disconnect" href="#orphe_core.Orphe.disconnect">disconnect</a></code></li>
 <li><code><a title="orphe_core.Orphe.print_device_information" href="#orphe_core.Orphe.print_device_information">print_device_information</a></code></li>
 <li><code><a title="orphe_core.Orphe.read_device_information" href="#orphe_core.Orphe.read_device_information">read_device_information</a></code></li>
+<li><code><a title="orphe_core.Orphe.scan_all_devices" href="#orphe_core.Orphe.scan_all_devices">scan_all_devices</a></code></li>
 <li><code><a title="orphe_core.Orphe.sensor_values_notification_handler" href="#orphe_core.Orphe.sensor_values_notification_handler">sensor_values_notification_handler</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_acc_range" href="#orphe_core.Orphe.set_acc_range">set_acc_range</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_got_acc_callback" href="#orphe_core.Orphe.set_got_acc_callback">set_got_acc_callback</a></code></li>

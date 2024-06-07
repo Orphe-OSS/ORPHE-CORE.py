@@ -31,6 +31,11 @@ python get_sensor_values.py
 ```bash
 python get_step_analysis.py
 ```
+### 周りのBLEデバイスをスキャンする
+コアモジュールを特定のデバイスに接続したい場合は、orphe.connect()の引数にデバイスのアドレスを指定することができます。これを利用するにあたって、特定のコアモジュールのアドレスを知りたい場合は以下を実行して周りのBLEデバイスをすべてスキャンすることができます。
+```bash
+python scan_ble_devices.py
+```
 
 ## ドキュメント
   * [ORPHE CORE Python API Reference](https://orphe-oss.github.io/ORPHE-CORE.py/api/orphe_core.html)
@@ -44,13 +49,3 @@ pdoc orphe_core --html -o docs/api --force
 
 ## Compatibility
  * ORPHE CORE 50Hz、200Hzモデルに対応していますが、50Hzモデルではsensor valuesにおける加速度、ジャイロ、クオータニオンのタイムスタンプやシリアル番号、パケット番号は利用することができません。これはファームウェアの仕様によるものです。
-
- 
-## 作業メモ
-- [x] ORPHE COREのBLE通信をpythonで行う
-- [x] orphe_core.pyでクラス化する
-- [x] device informationのキャラクタリスティック対応
-- [x] SENSOR VALUESの200Hzキャラクタリスティック対応
-- [x] SENSOR VALUESの50Hzキャラクタリスティック対応
-- [x] STEP ANALYSISのキャラクタリスティック対応
-- [x] ドキュメントの整備
