@@ -38,11 +38,17 @@ async def main():
     try:
         while True:
             await asyncio.sleep(1)
+            if not orphe.is_connected():
+                break
     except KeyboardInterrupt:
-        print("Stopping notification...")
-        await orphe.stop_notification()
-        print("Notification stopped. Disconnecting from the device.")
-        await orphe.disconnect()
+        print("Stopping due to KeyboardInterrupt...")
+    finally:
+        if orphe.is_connected():
+            print("Stopping notification...")
+            await orphe.stop_sensor_values_notification()
+            print("Notification stopped. Disconnecting from the device.")
+            await orphe.disconnect()
+        print("Disconnected.")
 
 if __name__ == "__main__":
     asyncio.run(main())

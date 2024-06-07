@@ -572,6 +572,15 @@ class Orphe:
         self.client = None
         self.step_count = StepCount()  # 歩数
 
+    def set_lost_data_callback(self, callback):
+        """
+        データが欠損したときに呼び出されるコールバック関数を設定する
+
+        Args:
+            callback: コールバック関数
+        """
+        self.lost_data_callback = callback
+
     def set_got_acc_callback(self, callback):
         """加速度センサの値を取得したときに呼び出されるコールバック関数を設定する。
 
@@ -683,6 +692,17 @@ class Orphe:
         else:
             print("Failed to connect to the device")
             return False
+
+    def is_connected(self):
+        """
+        ORPHE COREに接続されているかどうかを返す
+
+        Returns:
+            接続されている場合はTrue、されていない場合はFalse
+        """
+        if self.client is None:
+            return False
+        return self.client.is_connected
 
     async def read_device_information(self):
         """
@@ -796,8 +816,10 @@ class Orphe:
                 self, data, self.device_information.range)
             if (sensor_values.serial_number - self.serial_number_prev) != 1:
                 # データ欠損の場合
-                print(
-                    f"Data loss detected. {self.serial_number_prev} <-> {sensor_values.serial_number}")
+                # コールバック関数が設定されている場合、コールバック関数を呼び出す
+                if hasattr(self, 'lost_data_callback') and self.lost_data_callback:
+                    self.lost_data_callback(
+                        self.serial_number_prev, sensor_values.serial_number)
             self.serial_number_prev = sensor_values.serial_number
         elif data[0] == 40:
             sensor_values = SensorValuesData(
