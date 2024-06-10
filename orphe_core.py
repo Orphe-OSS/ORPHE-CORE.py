@@ -748,6 +748,24 @@ class Orphe:
         ba = bytearray([0x02, is_on, pattern] + [0x00] * 17)
         await self.write_device_information(ba)
 
+    async def set_led_brightness(self, brightness):
+        """
+        引数に明るさ（0-255）をもらい、その値にLEDを設定する。LED輝度の設定以外は変更しないので、一旦 device informationを取得しなおし、LED輝度以外はすべて従来値を使う
+
+        Args:
+            brightness: 0-255
+
+        Returns: None
+        """
+        if brightness < 0 or brightness > 255:
+            print("brightness must be 0-255.")
+            return
+
+        di = await self.read_device_information()
+        ba = bytearray([0x01, di.lr, brightness, 0x00, di.auto_run, di.log_high,
+                       di.log_low, di.range.acc, di.range.gyro] + [0x00] * 11)
+        await self.write_device_information(ba)
+
     async def set_acc_range(self, acc_range):
         """
         acc_range(int): 2,4,8,16G を順番に 0,1,2,3 で指定

@@ -10,6 +10,7 @@ async def main():
         return
 
     await orphe.print_device_information()
+    await orphe.set_led_brightness(255)
 
     try:
         while True:

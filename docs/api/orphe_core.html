@@ -776,6 +776,24 @@ class Orphe:
         ba = bytearray([0x02, is_on, pattern] + [0x00] * 17)
         await self.write_device_information(ba)
 
+    async def set_led_brightness(self, brightness):
+        &#34;&#34;&#34;
+        引数に明るさ（0-255）をもらい、その値にLEDを設定する。LED輝度の設定以外は変更しないので、一旦 device informationを取得しなおし、LED輝度以外はすべて従来値を使う
+
+        Args:
+            brightness: 0-255
+
+        Returns: None
+        &#34;&#34;&#34;
+        if brightness &lt; 0 or brightness &gt; 255:
+            print(&#34;brightness must be 0-255.&#34;)
+            return
+
+        di = await self.read_device_information()
+        ba = bytearray([0x01, di.lr, brightness, 0x00, di.auto_run, di.log_high,
+                       di.log_low, di.range.acc, di.range.gyro] + [0x00] * 11)
+        await self.write_device_information(ba)
+
     async def set_acc_range(self, acc_range):
         &#34;&#34;&#34;
         acc_range(int): 2,4,8,16G を順番に 0,1,2,3 で指定
@@ -1403,6 +1421,24 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
         ba = bytearray([0x02, is_on, pattern] + [0x00] * 17)
         await self.write_device_information(ba)
 
+    async def set_led_brightness(self, brightness):
+        &#34;&#34;&#34;
+        引数に明るさ（0-255）をもらい、その値にLEDを設定する。LED輝度の設定以外は変更しないので、一旦 device informationを取得しなおし、LED輝度以外はすべて従来値を使う
+
+        Args:
+            brightness: 0-255
+
+        Returns: None
+        &#34;&#34;&#34;
+        if brightness &lt; 0 or brightness &gt; 255:
+            print(&#34;brightness must be 0-255.&#34;)
+            return
+
+        di = await self.read_device_information()
+        ba = bytearray([0x01, di.lr, brightness, 0x00, di.auto_run, di.log_high,
+                       di.log_low, di.range.acc, di.range.gyro] + [0x00] * 11)
+        await self.write_device_information(ba)
+
     async def set_acc_range(self, acc_range):
         &#34;&#34;&#34;
         acc_range(int): 2,4,8,16G を順番に 0,1,2,3 で指定
@@ -1966,6 +2002,40 @@ Returns: None</p></div>
         return
 
     ba = bytearray([0x02, is_on, pattern] + [0x00] * 17)
+    await self.write_device_information(ba)</code></pre>
+</details>
+</dd>
+<dt id="orphe_core.Orphe.set_led_brightness"><code class="name flex">
+<span>async def <span class="ident">set_led_brightness</span></span>(<span>self, brightness)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>引数に明るさ（0-255）をもらい、その値にLEDを設定する。LED輝度の設定以外は変更しないので、一旦 device informationを取得しなおし、LED輝度以外はすべて従来値を使う</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>brightness</code></strong></dt>
+<dd>0-255</dd>
+</dl>
+<p>Returns: None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def set_led_brightness(self, brightness):
+    &#34;&#34;&#34;
+    引数に明るさ（0-255）をもらい、その値にLEDを設定する。LED輝度の設定以外は変更しないので、一旦 device informationを取得しなおし、LED輝度以外はすべて従来値を使う
+
+    Args:
+        brightness: 0-255
+
+    Returns: None
+    &#34;&#34;&#34;
+    if brightness &lt; 0 or brightness &gt; 255:
+        print(&#34;brightness must be 0-255.&#34;)
+        return
+
+    di = await self.read_device_information()
+    ba = bytearray([0x01, di.lr, brightness, 0x00, di.auto_run, di.log_high,
+                   di.log_low, di.range.acc, di.range.gyro] + [0x00] * 11)
     await self.write_device_information(ba)</code></pre>
 </details>
 </dd>
@@ -2785,6 +2855,7 @@ Returns: None</p></div>
 <li><code><a title="orphe_core.Orphe.set_got_stride_callback" href="#orphe_core.Orphe.set_got_stride_callback">set_got_stride_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_gyro_range" href="#orphe_core.Orphe.set_gyro_range">set_gyro_range</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_led" href="#orphe_core.Orphe.set_led">set_led</a></code></li>
+<li><code><a title="orphe_core.Orphe.set_led_brightness" href="#orphe_core.Orphe.set_led_brightness">set_led_brightness</a></code></li>
 <li><code><a title="orphe_core.Orphe.set_lost_data_callback" href="#orphe_core.Orphe.set_lost_data_callback">set_lost_data_callback</a></code></li>
 <li><code><a title="orphe_core.Orphe.start_sensor_values_notification" href="#orphe_core.Orphe.start_sensor_values_notification">start_sensor_values_notification</a></code></li>
 <li><code><a title="orphe_core.Orphe.start_step_analysis_notification" href="#orphe_core.Orphe.start_step_analysis_notification">start_step_analysis_notification</a></code></li>
