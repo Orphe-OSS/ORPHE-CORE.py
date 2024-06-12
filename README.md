@@ -1,6 +1,9 @@
 # ORPHE-CORE.py
 Happy hacking for ORPHE CORE with python!!
 
+<!-- git画像の読み込み -->
+![CORE and Terminal](./docs/teaser/01.gif)
+
 ## Installation
 ```bash
 git clone https://github.com/Orphe-OSS/ORPHE-CORE.py.git
