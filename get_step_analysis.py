@@ -43,7 +43,7 @@ async def main():
     finally:
         if orphe.is_connected():
             print("Stopping notification...")
-            await orphe.stop_step_]analysis_notification()
+            await orphe.stop_step_analysis_notification()
             print("Notification stopped. Disconnecting from the device.")
             await orphe.disconnect()
         print("Disconnected.")
