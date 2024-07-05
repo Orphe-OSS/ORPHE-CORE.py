@@ -137,6 +137,15 @@ class Range:
 class GaitData:
     """
     歩行解析の値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        gait_type: 歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
+        direction: ストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
+        calorie: 総消費カロリー
+        distance: 総移動距離
+        standing_phase_duration: 立脚期継続時間
+        swing_phase_duration: 遊脚期継続時間
     """
 
     def __init__(self, data):
@@ -169,6 +178,13 @@ class GaitData:
 class StrideData:
     """
     ストライドの値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        foot_angle: フットアングル
+        x: ストライドX
+        y: ストライドY
+        z: ストライドZ
     """
 
     def __init__(self, data):
@@ -195,6 +211,13 @@ class StrideData:
 class PronationData:
     """
     プロネーションの値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        landing_impact: 着地衝撃力
+        x: プロネーションX
+        y: プロネーションY
+        z: プロネーションZ
     """
 
     def __init__(self, data):
@@ -221,6 +244,19 @@ class PronationData:
 class QuatDistanceData:
     """
     クォータニオンと差分値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        phase: 歩容フェイズ
+        period: 歩容ピリオド
+        event: 歩容イベント
+        w: クォータニオンのw
+        x: クォータニオンのx
+        y: クォータニオンのy
+        z: クォータニオンのz
+        x_distance: 加速度力算出された単位時間のx移動距離
+        y_distance: 加速度力算出された単位時間のy移動距離
+        z_distance: 加速度力算出された単位時間のz移動距離
     """
 
     def __init__(self, data):
@@ -674,7 +710,8 @@ class Orphe:
                     break
         else:
             for device in devices:
-                if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get("uuids", [])]:
+                #  device.name に CR-* が含まれている場合に接続する
+                if device.name is not None and "CR-" in device.name:
                     target_device = device
                     print(
                         f"Found target device: {device.name}(name), {device.address}(address)")

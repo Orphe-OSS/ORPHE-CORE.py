@@ -165,6 +165,15 @@ class Range:
 class GaitData:
     &#34;&#34;&#34;
     歩行解析の値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        gait_type: 歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
+        direction: ストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
+        calorie: 総消費カロリー
+        distance: 総移動距離
+        standing_phase_duration: 立脚期継続時間
+        swing_phase_duration: 遊脚期継続時間
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -197,6 +206,13 @@ class GaitData:
 class StrideData:
     &#34;&#34;&#34;
     ストライドの値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        foot_angle: フットアングル
+        x: ストライドX
+        y: ストライドY
+        z: ストライドZ
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -223,6 +239,13 @@ class StrideData:
 class PronationData:
     &#34;&#34;&#34;
     プロネーションの値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        landing_impact: 着地衝撃力
+        x: プロネーションX
+        y: プロネーションY
+        z: プロネーションZ
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -249,6 +272,19 @@ class PronationData:
 class QuatDistanceData:
     &#34;&#34;&#34;
     クォータニオンと差分値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        phase: 歩容フェイズ
+        period: 歩容ピリオド
+        event: 歩容イベント
+        w: クォータニオンのw
+        x: クォータニオンのx
+        y: クォータニオンのy
+        z: クォータニオンのz
+        x_distance: 加速度力算出された単位時間のx移動距離
+        y_distance: 加速度力算出された単位時間のy移動距離
+        z_distance: 加速度力算出された単位時間のz移動距離
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -702,7 +738,8 @@ class Orphe:
                     break
         else:
             for device in devices:
-                if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
+                #  device.name に CR-* が含まれている場合に接続する
+                if device.name is not None and &#34;CR-&#34; in device.name:
                     target_device = device
                     print(
                         f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
@@ -1095,7 +1132,24 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
 <span>(</span><span>data)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>歩行解析の値を格納するクラス</p></div>
+<div class="desc"><p>歩行解析の値を格納するクラス</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>step_count</code></strong></dt>
+<dd>歩数</dd>
+<dt><strong><code>gait_type</code></strong></dt>
+<dd>歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）</dd>
+<dt><strong><code>direction</code></strong></dt>
+<dd>ストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）</dd>
+<dt><strong><code>calorie</code></strong></dt>
+<dd>総消費カロリー</dd>
+<dt><strong><code>distance</code></strong></dt>
+<dd>総移動距離</dd>
+<dt><strong><code>standing_phase_duration</code></strong></dt>
+<dd>立脚期継続時間</dd>
+<dt><strong><code>swing_phase_duration</code></strong></dt>
+<dd>遊脚期継続時間</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1103,6 +1157,15 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
 <pre><code class="python">class GaitData:
     &#34;&#34;&#34;
     歩行解析の値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        gait_type: 歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
+        direction: ストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
+        calorie: 総消費カロリー
+        distance: 総移動距離
+        standing_phase_duration: 立脚期継続時間
+        swing_phase_duration: 遊脚期継続時間
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -1347,7 +1410,8 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
                     break
         else:
             for device in devices:
-                if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
+                #  device.name に CR-* が含まれている場合に接続する
+                if device.name is not None and &#34;CR-&#34; in device.name:
                     target_device = device
                     print(
                         f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
@@ -1596,7 +1660,8 @@ device_information: 取得したデバイス情報の保管用メンバ変数</p
                 break
     else:
         for device in devices:
-            if SERVICE_ORPHE_INFORMATION_UUID.lower() in [uuid.lower() for uuid in device.metadata.get(&#34;uuids&#34;, [])]:
+            #  device.name に CR-* が含まれている場合に接続する
+            if device.name is not None and &#34;CR-&#34; in device.name:
                 target_device = device
                 print(
                     f&#34;Found target device: {device.name}(name), {device.address}(address)&#34;)
@@ -2172,7 +2237,20 @@ Returns: None</p></div>
 <span>(</span><span>data)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>プロネーションの値を格納するクラス</p></div>
+<div class="desc"><p>プロネーションの値を格納するクラス</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>step_count</code></strong></dt>
+<dd>歩数</dd>
+<dt><strong><code>landing_impact</code></strong></dt>
+<dd>着地衝撃力</dd>
+<dt><strong><code>x</code></strong></dt>
+<dd>プロネーションX</dd>
+<dt><strong><code>y</code></strong></dt>
+<dd>プロネーションY</dd>
+<dt><strong><code>z</code></strong></dt>
+<dd>プロネーションZ</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2180,6 +2258,13 @@ Returns: None</p></div>
 <pre><code class="python">class PronationData:
     &#34;&#34;&#34;
     プロネーションの値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        landing_impact: 着地衝撃力
+        x: プロネーションX
+        y: プロネーションY
+        z: プロネーションZ
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -2299,7 +2384,32 @@ Returns: None</p></div>
 <span>(</span><span>data)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>クォータニオンと差分値を格納するクラス</p></div>
+<div class="desc"><p>クォータニオンと差分値を格納するクラス</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>step_count</code></strong></dt>
+<dd>歩数</dd>
+<dt><strong><code>phase</code></strong></dt>
+<dd>歩容フェイズ</dd>
+<dt><strong><code>period</code></strong></dt>
+<dd>歩容ピリオド</dd>
+<dt><strong><code>event</code></strong></dt>
+<dd>歩容イベント</dd>
+<dt><strong><code>w</code></strong></dt>
+<dd>クォータニオンのw</dd>
+<dt><strong><code>x</code></strong></dt>
+<dd>クォータニオンのx</dd>
+<dt><strong><code>y</code></strong></dt>
+<dd>クォータニオンのy</dd>
+<dt><strong><code>z</code></strong></dt>
+<dd>クォータニオンのz</dd>
+<dt><strong><code>x_distance</code></strong></dt>
+<dd>加速度力算出された単位時間のx移動距離</dd>
+<dt><strong><code>y_distance</code></strong></dt>
+<dd>加速度力算出された単位時間のy移動距離</dd>
+<dt><strong><code>z_distance</code></strong></dt>
+<dd>加速度力算出された単位時間のz移動距離</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2307,6 +2417,19 @@ Returns: None</p></div>
 <pre><code class="python">class QuatDistanceData:
     &#34;&#34;&#34;
     クォータニオンと差分値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        phase: 歩容フェイズ
+        period: 歩容ピリオド
+        event: 歩容イベント
+        w: クォータニオンのw
+        x: クォータニオンのx
+        y: クォータニオンのy
+        z: クォータニオンのz
+        x_distance: 加速度力算出された単位時間のx移動距離
+        y_distance: 加速度力算出された単位時間のy移動距離
+        z_distance: 加速度力算出された単位時間のz移動距離
     &#34;&#34;&#34;
 
     def __init__(self, data):
@@ -2745,7 +2868,20 @@ Returns: None</p></div>
 <span>(</span><span>data)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>ストライドの値を格納するクラス</p></div>
+<div class="desc"><p>ストライドの値を格納するクラス</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>step_count</code></strong></dt>
+<dd>歩数</dd>
+<dt><strong><code>foot_angle</code></strong></dt>
+<dd>フットアングル</dd>
+<dt><strong><code>x</code></strong></dt>
+<dd>ストライドX</dd>
+<dt><strong><code>y</code></strong></dt>
+<dd>ストライドY</dd>
+<dt><strong><code>z</code></strong></dt>
+<dd>ストライドZ</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2753,6 +2889,13 @@ Returns: None</p></div>
 <pre><code class="python">class StrideData:
     &#34;&#34;&#34;
     ストライドの値を格納するクラス
+
+    Attributes:
+        step_count: 歩数
+        foot_angle: フットアングル
+        x: ストライドX
+        y: ストライドY
+        z: ストライドZ
     &#34;&#34;&#34;
 
     def __init__(self, data):

@@ -18,12 +18,25 @@ async def main():
             await asyncio.sleep(1)
             await orphe.set_led(0, 0)
             await asyncio.sleep(1)
-
-    except KeyboardInterrupt:
-        print("Stopping notification...")
-        await orphe.stop_notification()
-        print("Notification stopped. Disconnecting from the device.")
+    finally:
+        print("Disconnecting from the device.")
         await orphe.disconnect()
 
+# 色々記述していますが，Ctrl+Cでプログラムを終了した場合にきれいに終了処理するためのものです．最悪 asyncio.run(main()) だけでも動きます．
 if __name__ == "__main__":
-    asyncio.run(main())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    main_task = loop.create_task(main())
+
+    try:
+        loop.run_until_complete(main_task)
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt(Ctrl+C) received. Canceling the main task...")
+        main_task.cancel()
+        try:
+            loop.run_until_complete(main_task)
+        except asyncio.CancelledError:
+            pass
+    finally:
+        loop.close()
+        print("Event loop closed.")
