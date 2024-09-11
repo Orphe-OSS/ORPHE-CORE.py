@@ -1,6 +1,17 @@
 import asyncio
+import sys
+import os
 from orphe_core import Orphe  # orphe_core.pyからOrpheクラスをインポート
 # 注意）Core2の場合はserial_numberとpacket_numberは取得できません。
+from pythonosc import udp_client  # python-oscをインポート
+# OSC送信の仕様は ORPHE TRACK Hub OSCプロトコルに準拠する
+
+# UnityのOSCサーバーのIPアドレスとポート番号を設定
+ip = "127.0.0.1"  # localhost
+port = 5005  # Unity側で設定する受信用のポート番号
+
+# OSCクライアントを作成
+client = udp_client.SimpleUDPClient(ip, port)
 
 
 def got_acc(acc):
@@ -8,7 +19,8 @@ def got_acc(acc):
 
 
 def got_converted_acc(acc):
-    acc.print()
+    client.send_message("/acc", [acc.x, acc.y, acc.z])
+    # acc.print()
 
 
 def got_gyro(gyro):
@@ -51,9 +63,12 @@ async def main():
     try:
         while True:
             await asyncio.sleep(1)
+            # 接続が切れた場合は再接続する
             if not orphe.is_connected():
-                break
-
+                print('Reconnecting...')
+                if not await orphe.connect():
+                    break
+                await orphe.start_sensor_values_notification()
     finally:
         if orphe.is_connected():
             print("Stopping notification...")

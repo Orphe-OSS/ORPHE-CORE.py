@@ -869,7 +869,7 @@ class Orphe:
         if data[0] == 50:
             sensor_values = SensorValuesData(
                 self, data, self.device_information.range)
-            if (sensor_values.serial_number - self.serial_number_prev) != 1:
+            if (sensor_values.serial_number - self.serial_number_prev) > 1:
                 # データ欠損の場合
                 # コールバック関数が設定されている場合、コールバック関数を呼び出す
                 if hasattr(self, 'lost_data_callback') and self.lost_data_callback:

@@ -39,6 +39,45 @@ python get_step_analysis.py
 python scan_ble_devices.py
 ```
 
+### OSCでデータを送信する
+`oscHub.py`を実行することで、ORPHE COREから取得したデータをOSCで送信することができます。初期設定では5005番のポートに送信します。なおoscHub.pyは加速度値のみをoscで送信していますので、他のデータを送信したい場合は適宜変更してください。
+```bash
+pip install python-osc
+python oscHub.py
+```
+
+#### UnityでのOSC受信
+UnityでOSCを受信するためには、extOSCを利用できます。すでに標準で含まれているかもしれませんが、含まれていない場合はUnity Package Managerからインストールしてください。その後、以下のコードを適当なGameObjectにアタッチしてください。
+```csharp
+using UnityEngine;
+using extOSC;
+
+public class OscOrpheReceiver : MonoBehaviour
+{
+    // 受信ポート
+    public int port = 5005;
+    
+    // OSCレシーバー
+    private OSCReceiver receiver;
+
+    void Start()
+    {
+        // OSCレシーバーの初期化
+        receiver = gameObject.AddComponent<OSCReceiver>();
+        receiver.LocalPort = port;
+
+        // メッセージのマッピング
+        receiver.Bind("/acc", OnReceiveMessage);
+    }
+
+    // メッセージ受信時のコールバック
+    private void OnReceiveMessage(OSCMessage message)
+    {
+        Debug.Log("Received from Python: " + message.Values[0].FloatValue + ", " + message.Values[1].FloatValue + ", " + message.Values[2].FloatValue);
+    }
+}
+```
+
 ## ドキュメント
   * [ORPHE CORE Python API Reference](https://orphe-oss.github.io/ORPHE-CORE.py/api/orphe_core.html)
 
