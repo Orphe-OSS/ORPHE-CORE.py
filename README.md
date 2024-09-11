@@ -3,6 +3,9 @@ Happy hacking for ORPHE CORE with python!!
 
 https://github.com/Orphe-OSS/ORPHE-CORE.py/assets/1846131/03c5f199-9a54-4307-a014-56b48d3ba373
 
+## Requirements
+ * Python 3.10 or later
+
 ## Installation
 ```bash
 git clone https://github.com/Orphe-OSS/ORPHE-CORE.py.git
