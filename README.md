@@ -46,37 +46,8 @@ pip install python-osc
 python oscHub.py
 ```
 
-#### UnityでのOSC受信
-UnityでOSCを受信するためには、extOSCを利用できます。すでに標準で含まれているかもしれませんが、含まれていない場合はUnity Package Managerからインストールしてください。その後、以下のコードを適当なGameObjectにアタッチしてください。
-```csharp
-using UnityEngine;
-using extOSC;
+具体的なアプリケーション側での受信方法については [OSCで様々なアプリケーションにデータをリアルタイム送信する](https://github.com/Orphe-OSS/ORPHE-CORE.py/wiki/%E7%95%AA%E5%A4%96%E7%B7%A8.-OSC%E3%81%A7%E6%A7%98%E3%80%85%E3%81%AA%E3%82%A2%E3%83%97%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%81%AB%E3%83%87%E3%83%BC%E3%82%BF%E3%82%92%E3%83%AA%E3%82%A2%E3%83%AB%E3%82%BF%E3%82%A4%E3%83%A0%E9%80%81%E4%BF%A1%E3%81%99%E3%82%8B)を参照してください
 
-public class OscOrpheReceiver : MonoBehaviour
-{
-    // 受信ポート
-    public int port = 5005;
-    
-    // OSCレシーバー
-    private OSCReceiver receiver;
-
-    void Start()
-    {
-        // OSCレシーバーの初期化
-        receiver = gameObject.AddComponent<OSCReceiver>();
-        receiver.LocalPort = port;
-
-        // メッセージのマッピング
-        receiver.Bind("/acc", OnReceiveMessage);
-    }
-
-    // メッセージ受信時のコールバック
-    private void OnReceiveMessage(OSCMessage message)
-    {
-        Debug.Log("Received from Python: " + message.Values[0].FloatValue + ", " + message.Values[1].FloatValue + ", " + message.Values[2].FloatValue);
-    }
-}
-```
 
 ## ドキュメント
   * [ORPHE CORE Python API Reference](https://orphe-oss.github.io/ORPHE-CORE.py/api/orphe_core.html)
