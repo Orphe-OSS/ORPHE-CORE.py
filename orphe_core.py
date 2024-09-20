@@ -675,6 +675,12 @@ class Orphe:
         """
         self.got_quat_distance_callback = callback
 
+    def set_on_disconnect_callback(self, callback):
+        """
+        ORPHE COREとの接続が切断されたときに呼び出されるコールバック関数を設定する
+        """
+        self.on_disconnect_callback = callback
+
     async def scan_all_devices(self):
         """
         すべてのBLEデバイスをスキャンして、その結果を返す
@@ -725,10 +731,25 @@ class Orphe:
         await self.client.connect()
         if self.client.is_connected:
             print("Connected to the device")
+            # 別のタスクで接続状態を監視
+            asyncio.create_task(self.monitor_connection(self.client))
+
             return True
         else:
             print("Failed to connect to the device")
             return False
+
+    async def monitor_connection(self, client):
+        while True:
+            await asyncio.sleep(1)  # 1秒ごとに接続状態をチェック
+            if not client.is_connected:
+                await self.disconnect_callback(self)
+                break
+
+    async def disconnect_callback(self, owner):
+        # コールバック関数が設定されている場合、コールバック関数を呼び出す
+        if hasattr(owner, 'on_disconnect_callback') and owner.on_disconnect_callback:
+            owner.on_disconnect_callback()
 
     def is_connected(self):
         """
@@ -756,7 +777,6 @@ class Orphe:
         ORPHE COREのデバイス情報を取得し、標準出力に表示する。ほぼデバッグ用途
         """
         di = await self.read_device_information()
-        print(di.rec)
         print(f"Battery: {di.battery}")
         print(f"LR: {di.lr}")
         print(f"REC: {di.rec}")
@@ -800,6 +820,21 @@ class Orphe:
 
         di = await self.read_device_information()
         ba = bytearray([0x01, di.lr, brightness, 0x00, di.auto_run, di.log_high,
+                       di.log_low, di.range.acc, di.range.gyro] + [0x00] * 11)
+        await self.write_device_information(ba)
+
+    async def set_lr(self, lr):
+        """
+        lr(int): 0 or 1
+        Returns: None
+        """
+        # lrの値の範囲をチェック
+        if lr < 0 or lr > 1:
+            print("lr must be 0 or 1.")
+            return
+
+        di = await self.read_device_information()
+        ba = bytearray([0x01, lr, di.led, 0x00, di.auto_run, di.log_high,
                        di.log_low, di.range.acc, di.range.gyro] + [0x00] * 11)
         await self.write_device_information(ba)
 
@@ -865,6 +900,9 @@ class Orphe:
         """
         センサの値を取得したときに呼び出されるハンドラ
         """
+        if (self.is_connected() == False):
+            return
+
         # データの長さを確認
         if data[0] == 50:
             sensor_values = SensorValuesData(

@@ -23,6 +23,10 @@ def got_quat(quat):
     quat.print()
 
 
+def on_disconnect():
+    print("Disconnected from the ORPHE CORE device.")
+
+
 def lost_data(serial_number_prev, serial_number):
     print(
         f"Data loss detected. {serial_number_prev} <-> {serial_number}")
@@ -35,9 +39,11 @@ async def main():
     # orphe.set_got_acc_callback(got_acc)
     # orphe.set_got_gyro_callback(got_gyro)
     orphe.set_got_converted_acc_callback(got_converted_acc)
+    orphe.set_lost_data_callback(lost_data)
     # orphe.set_got_converted_gyro_callback(got_converted_gyro)
     # orphe.set_got_quat_callback(got_quat)
     # orphe.set_lost_data_callback(lost_data)
+    # orphe.set_on_disconnect_callback(on_disconnect)
 
     # 接続するデバイスを指定する場合はコアモジュールのaddressをconnect()の引数に文字列として渡してください。addressを知りたい場合はコアモジュールに接続するとコンソールに表示されます。文字列が空の場合はSERVICE UUIDがORPHEと合致する最初に見つかったデバイスに接続します。
     if not await orphe.connect():
