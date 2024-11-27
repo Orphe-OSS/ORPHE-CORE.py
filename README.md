@@ -50,6 +50,9 @@ python device_information.py
 ```
 
 ### matplotlibを利用してデータを可視化する
+
+https://github.com/user-attachments/assets/00990bf3-6367-4efe-9f6d-ec41de95cc93
+
 `plot_sensor_values.py`を実行することで、取得したセンサデータをmatplotlibを利用してリアルタイムに可視化することができます。初期設定では加速度値を可視化していますが、他のデータを可視化したい場合は適宜変更してください。
 ```bash
 pip install matplotlib
