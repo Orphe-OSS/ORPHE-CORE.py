@@ -213,6 +213,8 @@ class OrpheApp:
                           {'state': DISABLED})
         self.master.after(0, self.status_label1.config, {
                           'text': 'Status: Disconnected'})
+        self.master.after(0, self.battery_label1.config,
+                          {'text': 'Battery Level: -'})
 
     def connect2(self):
         # Connectボタンを無効化
@@ -302,6 +304,8 @@ class OrpheApp:
                           {'state': DISABLED})
         self.master.after(0, self.status_label2.config, {
                           'text': 'Status: Disconnected'})
+        self.master.after(0, self.battery_label2.config,
+                          {'text': 'Battery Level: -'})
 
     def on_closing(self):
         # クリーンアップ処理

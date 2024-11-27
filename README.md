@@ -49,6 +49,13 @@ device_information.py にコアモジュールの情報を取得するサンプ�
 python device_information.py
 ```
 
+### matplotlibを利用してデータを可視化する
+`plot_sensor_values.py`を実行することで、取得したセンサデータをmatplotlibを利用してリアルタイムに可視化することができます。初期設定では加速度値を可視化していますが、他のデータを可視化したい場合は適宜変更してください。
+```bash
+pip install matplotlib
+python plot_sensor_values.py
+```
+
 ### OSCでデータを送信する
 `oscHub.py`を実行することで、ORPHE COREから取得したデータをOSCで送信することができます。初期設定では5005番のポートに送信します。なおoscHub.pyは加速度値のみをoscで送信していますので、他のデータを送信したい場合は適宜変更してください。
 ```bash

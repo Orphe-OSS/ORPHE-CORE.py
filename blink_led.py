@@ -11,7 +11,7 @@ async def main():
 
     await orphe.print_device_information()
     await orphe.set_led_brightness(255)
-
+    print(orphe.client.mtu_size)
     try:
         while True:
             await orphe.set_led(1, 0)

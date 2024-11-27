@@ -731,6 +731,7 @@ class Orphe:
         await self.client.connect()
         if self.client.is_connected:
             print("Connected to the device")
+
             # 別のタスクで接続状態を監視
             asyncio.create_task(self.monitor_connection(self.client))
 
