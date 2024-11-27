@@ -40,7 +40,7 @@ python get_step_analysis.py
 ### 周りのBLEデバイスをスキャンする
 コアモジュールを特定のデバイスに接続したい場合は、orphe.connect()の引数にデバイスのアドレスを指定することができます。これを利用するにあたって、特定のコアモジュールのアドレスを知りたい場合は以下を実行して周りのBLEデバイスをすべてスキャンすることができます。
 ```bash
-python scan_ble_devices.py
+python scan.py
 ```
 
 ### device informationを取得する
