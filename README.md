@@ -60,7 +60,7 @@ python plot_sensor_values.py
 ```
 
 ### OSCでデータを送信する
-`oscHub.py`を実行することで、ORPHE COREから取得したデータをOSCで送信することができます。初期設定では5005番のポートに送信します。なおoscHub.pyは加速度値のみをoscで送信していますので、他のデータを送信したい場合は適宜変更してください。
+`osc.py`を実行することで、ORPHE COREから取得したデータをOSCで送信することができます。初期設定では5005番のポートに送信します。なお`osc.py`は加速度値のみをoscで送信していますので、他のデータを送信したい場合は適宜変更してください。
 ```bash
 pip install python-osc
 python osc.py
