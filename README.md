@@ -87,5 +87,9 @@ pip install pdoc3
 pdoc orphe_core --html -o docs/api --force
 ```
 
+## 教材
+wikiに学習教材や具体的なケーススタディをまとめています。このREADMEで基本的な使い方を学んだ後は、wikiを参照してさらに深く学ぶことができます。
+  * [ORPHE-CORE.py学習教材](https://github.com/Orphe-OSS/ORPHE-CORE.py/wiki)
+
 ## Compatibility
  * ORPHE CORE 50Hz、200Hzモデルに対応していますが、50Hzモデルではsensor valuesにおける加速度、ジャイロ、クオータニオンのタイムスタンプやシリアル番号、パケット番号は利用することができません。これはファームウェアの仕様によるものです。
