@@ -153,9 +153,9 @@ class GaitData:
         self.step_count = int.from_bytes(
             data[2:4], byteorder='big', signed=False)
         # 4番目は最初の2ビット分が enumで歩容タイプ（0:無し、1:歩行、2:走行,3:直立静止）
-        self.gait_type = data[4] & 0b00000011
+        self.gait_type = data[4] & 0b11000000 >> 6
         # 4番目は2,3,4ビット分がenumでストライド方向（0:なし, 1:前方, 2:後方,3:内側,4:外側）
-        self.direction = (data[4] & 0b00011100) >> 2
+        self.direction = (data[4] & 0b00111000) >> 3
         # data[6],data[7]はfloat16で総消費カロリー
         self.calorie = struct.unpack('>e', data[6:8])
         # 8,9,10,11はfloat32で総移動距離
